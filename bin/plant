@@ -1,0 +1,74 @@
+#!/usr/bin/env ruby -W1
+# frozen_string_literal: true
+
+require 'optparse'
+require_relative '../lib/planter'
+
+options = {
+  help: false,
+  debug: false,
+  version: false
+}
+
+# Variable definition
+# variables:
+# - key: var
+#   prompt: Variable
+#   type: [string,float,integer,number,date]
+#   value: (for date type can be today, time, now, etc.)
+#   default: Untitled
+#   min: 1
+#   max: 5
+Planter.variables = {}
+
+opts = OptionParser.new
+opts.banner = "Usage: planter [options] TEMPLATE"
+
+opts.on_tail('-d', '--debug', 'Display version number') do
+  Planter.debug = true
+end
+
+opts.on_tail('-h', '--help', 'Display this screen, or list variables for template argument') do
+  options[:help] = true
+end
+
+opts.on_tail('-v', '--version', 'Display version number') do
+  options[:version] = true
+end
+
+opts.parse!
+
+def list_vars(template)
+  puts "#{template} variables:"
+  Planter.config = template
+  Planter.config[:variables].sort_by { |v| v[:name].to_var }.each do |var|
+    title = var[:prompt] || var[:name]
+    var_type = var[:type].normalize_type || :string
+    default = var[:value] ? var[:value] : var[:default]
+    default = default ? " [default: #{default}]" : ''
+    puts "  #{var[:name].to_var} (#{var_type})#{default}"
+  end
+end
+
+if options[:version]
+  puts "planter v#{Planter::VERSION}"
+  Process.exit 0
+elsif options[:help]
+  if ARGV.count.zero?
+    puts opts
+    Process.exit 0
+  else
+    list_vars(ARGV[0])
+    Process.exit 0
+  end
+else
+  Planter.notify('Template argument required', :error, exit_code: 12) if ARGV.count.zero?
+end
+
+Planter::Color.coloring = $stdout.isatty
+
+ARGV.each do |template|
+  Planter.config = template
+  app = Planter::Plant.new
+  app.plant
+end

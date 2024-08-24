@@ -16,4 +16,5 @@ RSpec.configure do |c|
   c.before(:each) do
     allow(FileUtils).to receive(:remove_entry_secure).with(anything)
   end
+  c.add_formatter 'Fuubar'
 end

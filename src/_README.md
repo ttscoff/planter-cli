@@ -3,11 +3,32 @@
 [![Gem](https://img.shields.io/gem/v/planter-cli.svg)](https://rubygems.org/gems/planter-cli)
 [![GitHub license](https://img.shields.io/github/license/ttscoff/planter-cli.svg)](./LICENSE.txt)
 
-## Description
+<!--README-->
 
-Plant a file and directory structure
+Plant a file and directory structure using templates.
 
 ## Installation
+
+## Configuration
+
+Directories and files in ~/.config/planter/templates/TEMPLATE_NAME
+
+scripts in planter/scripts or in TEMPLATE_NAME/\_scripts
+
+- variables
+  # - key: var
+  # prompt: Variable
+  # type: [string,float,integer,number,date]
+  # value: (for date type can be today, time, now, etc.)
+  # default: Untitled
+  # min: 1
+  # max: 5
+- scripts
+- git
+
+## Usage
+
+<!--END README-->
 
 ## Documentation
 
