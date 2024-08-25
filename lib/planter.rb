@@ -60,7 +60,7 @@ module Planter
     attr_accessor :variables
 
     ## Filter patterns
-    attr_accessor :patterns
+    attr_writer :patterns
 
     ##
     ## Print a message on the command line
@@ -126,19 +126,25 @@ module Planter
         Process.exit 0
       end
       @config = YAML.load(IO.read(config)).symbolize_keys
-      if @config[:files]&.is_a?(Array)
-        files = {}
-        @config[:files].each do |k, v|
-          files[k] = v
-        end
-        @config[:files] = files
+
+      return unless @config[:files].is_a?(Array)
+
+      files = {}
+      @config[:files].each do |k, v|
+        files[k] = v
       end
+      @config[:files] = files
     end
 
     def patterns
       @patterns ||= process_patterns
     end
 
+    ##
+    ## Process :files in config into regex pattern/operator pairs
+    ##
+    ## @return     [Hash] { regex => operator } hash
+    ##
     def process_patterns
       patterns = {}
       @config[:files].each do |file, oper|

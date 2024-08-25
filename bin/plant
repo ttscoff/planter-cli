@@ -64,6 +64,11 @@ end
 
 opts.parse!
 
+##
+## List variables for a template
+##
+## @param      template  [String] The template
+##
 def list_vars(template)
   puts "#{template} variables:"
   Planter.config = template

@@ -1,8 +1,12 @@
 # frozen_string_literal: true
 
 module Planter
+  # A single file entry in a FileList
   class FileEntry < Hash
+    # Operation to execute on the file
     attr_accessor :operation
+
+    # File path and target path
     attr_reader :file, :target
 
     ##

@@ -73,7 +73,7 @@ module Planter
     ##
     ## Copy tagged merge sections from source to target
     ##
-    ## @param      file  [FileEntry] The file entry
+    ## @param      entry  [FileEntry] The file entry
     ##
     def merge(entry)
       return copy_file(entry) if File.directory?(entry.file)

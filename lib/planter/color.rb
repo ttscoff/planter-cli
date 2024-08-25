@@ -225,7 +225,7 @@ module Planter
       ## m: magenta, r: red, b: bold, u: underline, i: italic,
       ## x: reset (remove background, color, emphasis)
       ##
-      ## Also accepts {#RGB} and {#RRGGBB} strings. Put a b before
+      ## Also accepts {(#)RGB} and {(#)RRGGBB} strings. Put a b before
       ## the hash to make it a background color
       ##
       ## @example Convert a templated string

@@ -223,6 +223,14 @@ module Planter
       end
     end
 
+    ##
+    ## Convert operator string to symbol
+    ##
+    ## @example "ignore" => :ignore
+    ## @example "m" => :merge
+    ##
+    ## @return     [Symbol] symbolized operator
+    ##
     def normalize_operator
       case self
       # merge or append
@@ -306,6 +314,12 @@ module Planter
       replace clean_encode
     end
 
+    ##
+    ## Highlight characters in parenthesis, with special color for default if
+    ## provided. Output is color templated string, unprocessed.
+    ##
+    ## @param      default  [String] The default
+    ##
     def highlight_character(default: nil)
       if default
         gsub(/\((#{default})\)/, "{dw}({xbc}\\1{dw}){xw}").gsub(/\((.)\)/, "{dw}({xbw}\\1{dw}){xw}")
