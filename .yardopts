@@ -1,4 +1,5 @@
 --markup=markdown
+--list-undoc
 lib/**/*.rb
 -
 README.md

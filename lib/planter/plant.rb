@@ -1,8 +1,16 @@
+# frozen_string_literal: true
+
 module Planter
   # Primary class
   class Plant
-    def initialize
+    ## Initialize a new Plant object
+    def initialize(template = nil, variables = nil)
+      Planter.variables = variables if variables&.is_a?(Hash)
+      Planter.config = template if template
+
       @basedir = File.join(Planter::BASE_DIR, Planter.template)
+      @target = Planter.target || Dir.pwd
+
       @git = Planter.config[:git] || false
       @debug = Planter.debug
 
@@ -29,14 +37,17 @@ module Planter
       end
     end
 
+    ##
+    ## Plant the template to current directory
+    ##
     def plant
+      Dir.chdir(@target)
       title = "{bw}[{bg}:spinner{bw}] {w}Planting {bg}#{Planter.template}{x}".x
       spinners = TTY::Spinner::Multi.new(title, format: :dots, success_mark: '{bg}✔{x}'.x, error_mark: '{br}✖{x}'.x)
 
-      copy_spinner = spinners.register "{bw}[{by}:spinner{bw}] {w}Copy files and directories{x}".x
-      # dir_spinner = spinners.register "{bw}[{by}:spinner{bw}] {w}Rename directories{x}".x
-      var_spinner = spinners.register "{bw}[{by}:spinner{bw}] {w}Apply variables{x}".x
-      git_spinner = spinners.register "{bw}[{by}:spinner{bw}] {w}Initialize git repo{x}".x if @git
+      copy_spinner = spinners.register '{bw}[{by}:spinner{bw}] {w}Copy files and directories{x}'.x
+      var_spinner = spinners.register '{bw}[{by}:spinner{bw}] {w}Apply variables{x}'.x
+      git_spinner = spinners.register '{bw}[{by}:spinner{bw}] {w}Initialize git repo{x}'.x if @git
 
       spinners.auto_spin
       copy_spinner.auto_spin
@@ -74,16 +85,21 @@ module Planter
         end
       end
 
-      if Planter.config[:script]
-        scripts = Planter.config[:script]
-        scripts = [scripts] if scripts.is_a?(String)
-        scripts.each do |script|
-          s = Planter::Script.new(@basedir, Dir.pwd, script)
-          s.run
-        end
+      return unless Planter.config[:script]
+
+      scripts = Planter.config[:script]
+      scripts = [scripts] if scripts.is_a?(String)
+      scripts.each do |script|
+        s = Planter::Script.new(@basedir, Dir.pwd, script)
+        s.run
       end
     end
 
+    ##
+    ## Copy files from template directory, renaming if %%template vars%% exist in title
+    ##
+    ## @return     true if successful, otherwise error description
+    ##
     def copy_files
       base = File.realdirpath(@basedir)
       path = File.join(base, '**/*')
@@ -96,7 +112,7 @@ module Planter
         new_file = ".#{file.sub(/^#{base}/, '').apply_variables}"
 
         FileUtils.mkdir_p(File.dirname(new_file))
-        FileUtils.cp(file, new_file) unless File.directory?(file) || File.exist?(new_file)
+        FileUtils.cp(file, new_file) unless File.directory?(file) || (File.exist?(new_file) && !Planter.overwrite)
       end
 
       true
@@ -105,6 +121,9 @@ module Planter
       'Error copying files/directories'
     end
 
+    ##
+    ## Update content of files in new directory using template variables
+    ##
     def update_files
       files = Dir.glob('**/*', File::FNM_DOTMATCH).reject { |f| File.directory?(f) || f =~ /^(\.git|config\.yml)/ }
 
@@ -126,6 +145,11 @@ module Planter
       'Error updating files/directories'
     end
 
+    ##
+    ## Initialize a git repo and create initial commit/tag
+    ##
+    ## @return     true if successful, otherwise an error description
+    ##
     def add_git
       return if File.directory?('.git')
 

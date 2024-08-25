@@ -85,17 +85,23 @@ class ::String
   ## Apply key/value substitutions to a string. Variables are represented as
   ## %%key%%, and the hash passed to the function is { key: value }
   ##
-  ## @param      vars  [Hash<Symbol, String>] The variables
+  ## @param      last_only  [Boolean] Only replace the last instance of %%key%%
   ##
   ## @return     [String] string with variables substituted
   ##
   def apply_variables(last_only: false)
     content = dup.clean_encode
-    mods = '(?<mod>(?::(l(?:ow(?:er)?)?)?|u(?:p(?:per)?)?|c(?:ap(?:ital(?:ize)?)?)?|t(?:itle)?|snake|camel|slug|f(?:(?:ile)name)?)*)'
+    mod_rx = '(?<mod>
+    (?::(l(?:ow(?:er)?)?)?|
+    u(?:p(?:per)?)?|
+    c(?:ap(?:ital(?:ize)?)?)?|
+    t(?:itle)?|
+    snake|camel|slug|
+    f(?:(?:ile)name)?)*)'
     Planter.variables.each do |k, v|
       if last_only
         pattern = "%%#{k.to_var}"
-        content = content.reverse.sub(/%%(?:(?<mod>.*?):)*(?<key>#{pattern.reverse})/) do
+        content = content.reverse.sub(/(?mix)%%(?:(?<mod>.*?):)*(?<key>#{pattern.reverse})/) do
           m = Regexp.last_match
           if m['mod']
             m['mod'].reverse.split(/:/).each do |mod|
@@ -106,10 +112,11 @@ class ::String
           v.reverse
         end.reverse
       else
-        content.gsub!(/%%(?<key>#{k.to_var})#{mods}%%/) do
+        content.gsub!(/(?mix)%%(?<key>#{k.to_var})#{mod_rx}%%/) do
           m = Regexp.last_match
 
-          m['mod']&.split(/:/).each do |mod|
+          mods = m['mod']&.split(/:/)
+          mods&.each do |mod|
             v = v.apply_mod(mod.normalize_mod)
           end
           v
@@ -123,7 +130,7 @@ class ::String
   ##
   ## Destructive version of #apply_variables
   ##
-  ## @param      vars  [Hash<Symbol, String>] The variables
+  ## @param      last_only  [Boolean] Only replace the last instance of %%key%%
   ##
   ## @return     [String] string with variables substituted
   ##
@@ -158,6 +165,11 @@ class ::String
     sub(/(\.\w+)?$/, ".#{extension}")
   end
 
+  ##
+  ## Apply a modification to string
+  ##
+  ## @param      mod   [Symbol] The modifier to apply
+  ##
   def apply_mod(mod)
     case mod
     when :slug
@@ -209,8 +221,6 @@ class ::String
   ## @example    "date".coerce #=> :date
   ## @example    "num".coerce #=> :number
   ##
-  ## @param      var_type  [String] type indicator
-  ##
   ## @return     [Symbol] type symbol
   ##
   def normalize_type
@@ -230,7 +240,12 @@ class ::String
     end
   end
 
+  ##
   ## Coerce a variable to a type
+  ##
+  ## @param      type  [Symbol] The type
+  ##
+  ##
   def coerce(type)
     case type
     when :date
@@ -252,7 +267,7 @@ class ::String
   ## @return     [String] UTF-8 string
   ##
   def clean_encode
-    force_encoding("ISO-8859-1").encode("utf-8", replace: nil)
+    force_encoding('ISO-8859-1').encode('utf-8', replace: nil)
   end
 
   ##

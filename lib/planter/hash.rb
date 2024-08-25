@@ -1,5 +1,6 @@
 # frozen_string_literal: true
 
+# Hash helpers
 class ::Hash
   ## Turn all keys into string
   ##

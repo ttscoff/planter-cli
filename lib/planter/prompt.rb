@@ -6,6 +6,7 @@ require 'tty-which'
 module Planter
   # Individual question
   module Prompt
+    # Class to prompt for answers
     class Question
       attr_reader :key, :type, :min, :max, :prompt, :gum, :condition, :default
 
@@ -61,10 +62,9 @@ module Planter
       ##
       ## Read a numeric entry using gum or TTY::Reader
       ##
-      ## @param      [Boolean] integer  Round result to nearest integer
+      ## @param      integer  [Boolean]  Round result to nearest integer
       ##
-      ## @return     [Number] integer response
-      ##
+      ## @return     [Number] numeric response
       ##
       def read_number(integer: false)
         default = @default ? " {bw}[#{@default}]" : ''
@@ -80,8 +80,13 @@ module Planter
         res
       end
 
+      ##
+      ## Parse a date value into a date string
+      ##
+      ## @return     [String] date string
+      ##
       def date_default
-        default = @value ? @value : @default
+        default = @value || @default
         return nil unless default
 
         case default
@@ -92,10 +97,17 @@ module Planter
         when /^%/
           Time.now.strftime(@default)
         else
-          Chronic.parse(default)
+          Chronic.parse(default).strftime('%Y-%m-%d')
         end
       end
 
+      ##
+      ## Accept a date string on the command line
+      ##
+      ## @param      prompt  [String] The prompt
+      ##
+      ## @return     [Date] Parsed Date object
+      ##
       def read_date(prompt: nil)
         prompt ||= @prompt
         default = date_default
@@ -103,9 +115,9 @@ module Planter
         default = default ? " {bw}[#{default}]" : ''
         Planter.notify("{by}#{prompt} (natural language)#{default}")
         line = @gum ? read_line_gum : read_line_tty
-        return @default unless line
+        return default unless line
 
-        Chronic.parse(line)
+        Chronic.parse(line).strftime('%Y-%m-%d')
       end
 
       ##
@@ -118,7 +130,6 @@ module Planter
       ## @return     [String] the single-line response
       ##
       def read_line(prompt: nil)
-        output = []
         prompt ||= @prompt
         default = @default ? " {bw}[#{@default}]" : ''
         Planter.notify("{by}#{prompt}#{default}")
@@ -140,7 +151,6 @@ module Planter
       ## @return     [String] the multi-line response
       ##
       def read_lines(prompt: nil)
-        output = []
         prompt ||= @prompt
         save = @gum ? 'Ctrl-J for newline, Enter' : 'Ctrl-D'
         Planter.notify("{by}#{prompt} {c}({bw}#{save}{c} to save)'")
@@ -154,13 +164,10 @@ module Planter
       ##
       ## Read a numeric entry using gum
       ##
-      ## @param      [Boolean] integer  Round result to nearest integer
-      ##
-      ## @return     [Number] integer response
-      ##
+      ## @return     [String] String response
       ##
       def read_number_gum
-        trap("SIGINT") { exit! }
+        trap('SIGINT') { exit! }
         res = `gum input --placeholder "#{@min}-#{@max}"`.strip
         return nil if res.strip.empty?
 
@@ -170,14 +177,12 @@ module Planter
       ##
       ## Read a single line entry using TTY::Reader
       ##
-      ## @param      [Boolean] integer  Round result to nearest integer
-      ##
-      ## @return     [Number] integer response
+      ## @return     [String] String response
       ##
       def read_line_tty
-        trap("SIGINT") { exit! }
+        trap('SIGINT') { exit! }
         reader = TTY::Reader.new
-        res = reader.read_line(">> ").strip
+        res = reader.read_line('>> ').strip
         return nil if res.empty?
 
         res
@@ -186,12 +191,10 @@ module Planter
       ##
       ## Read a single line entry using gum
       ##
-      ## @param      [Boolean] integer  Round result to nearest integer
-      ##
-      ## @return     [Number] integer response
+      ## @return     [String] String response
       ##
       def read_line_gum
-        trap("SIGINT") { exit! }
+        trap('SIGINT') { exit! }
         res = `gum input --placeholder "(blank to use default)"`.strip
         return nil if res.empty?
 
@@ -204,7 +207,7 @@ module Planter
       ## @return     [string] multiline input
       ##
       def read_mutliline_tty
-        trap("SIGINT") { exit! }
+        trap('SIGINT') { exit! }
         reader = TTY::Reader.new
         res = reader.read_multiline
         res.join("\n").strip
@@ -216,9 +219,9 @@ module Planter
       ## @return     [string] multiline input
       ##
       def read_multiline_gum(prompt)
-        trap("SIGINT") { exit! }
+        trap('SIGINT') { exit! }
         width = TTY::Screen.cols > 80 ? 80 : TTY::Screen.cols
-        `gum write --placeholder "#{prompt}" --width 80 --char-limit 0`.strip
+        `gum write --placeholder "#{prompt}" --width #{width} --char-limit 0`.strip
       end
     end
 
@@ -252,10 +255,10 @@ module Planter
       end
       system 'stty cbreak'
 
-      options = unless default.nil?
-                  "{w}[#{default ? "{bg}Y{w}/{bw}n" : "{bw}y{w}/{bg}N"}{w}]"
+      options = if default.nil?
+                  '{w}[{bw}y{w}/{bw}n{w}]'
                 else
-                  "{w}[{bw}y{w}/{bw}n{w}]"
+                  "{w}[#{default ? '{bg}Y{w}/{bw}n' : '{bw}y{w}/{bg}N'}{w}]"
                 end
       $stdout.syswrite "{bw}#{question.sub(/\?$/, '')} #{options}{bw}? {x}".x
       res = $stdin.sysread 1

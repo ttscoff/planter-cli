@@ -24,6 +24,7 @@ require_relative 'planter/plant'
 
 # Main Journal module
 module Planter
+  # Base directory for templates
   BASE_DIR = File.expand_path('~/.config/planter/templates/')
 
   class << self
@@ -32,6 +33,15 @@ module Planter
 
     ## Debug mode
     attr_accessor :debug
+
+    ## Accept defaults
+    attr_accessor :defaults
+
+    ## Target
+    attr_accessor :target
+
+    ## Overwrite files
+    attr_accessor :overwrite
 
     ## Current date
     attr_accessor :date
@@ -45,6 +55,13 @@ module Planter
     ## Variable key/values
     attr_accessor :variables
 
+    ##
+    ## Print a message on the command line
+    ##
+    ## @param      string             [String] The message string
+    ## @param      notification_type  [Symbol] The notification type (:debug, :error, :warn, :info)
+    ## @param      exit_code          [Integer] If provided, exit with code after delivering message
+    ##
     def notify(string, notification_type = :info, exit_code: nil)
       case notification_type
       when :debug
@@ -60,7 +77,15 @@ module Planter
       Process.exit exit_code unless exit_code.nil?
     end
 
+    ##
+    ## Build a configuration from template name
+    ##
+    ## @param      template  [String] The template name
+    ##
+    ## @return     [Hash] Configuration object
+    ##
     def config=(template)
+      Planter.variables ||= {}
       base_dir = File.join(BASE_DIR, template)
       unless File.directory?(base_dir)
         notify("Template #{template} does not exist", :error)

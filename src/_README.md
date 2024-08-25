@@ -11,11 +11,9 @@ Plant a file and directory structure using templates.
 
 ## Configuration
 
-Directories and files in ~/.config/planter/templates/TEMPLATE_NAME
-
 scripts in planter/scripts or in TEMPLATE_NAME/\_scripts
 
-- variables
+- variables used in templates
   # - key: var
   # prompt: Variable
   # type: [string,float,integer,number,date]
@@ -26,7 +24,18 @@ scripts in planter/scripts or in TEMPLATE_NAME/\_scripts
 - scripts
 - git
 
+### Templates
+
+Directories and files in ~/.config/planter/templates/TEMPLATE_NAME
+
+Use %%key%% in filenames, path names, and in text. Works in text files, RTF files, and any document that stores its values in plain text (like source code or XML) or Apple Binary Plist (like MindNode).
+
 ## Usage
+
+- run in any directory
+- files will not be overwritten
+- git initted only if .git doesn't exist
+- pass variables on the command line
 
 <!--END README-->
 
