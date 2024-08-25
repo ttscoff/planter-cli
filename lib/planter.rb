@@ -19,7 +19,11 @@ require_relative 'planter/color'
 require_relative 'planter/hash'
 require_relative 'planter/prompt'
 require_relative 'planter/string'
+require_relative 'planter/array'
+require_relative 'planter/file'
 require_relative 'planter/symbol'
+require_relative 'planter/filelist'
+require_relative 'planter/fileentry'
 require_relative 'planter/plant'
 
 # Main Journal module
@@ -55,6 +59,9 @@ module Planter
     ## Variable key/values
     attr_accessor :variables
 
+    ## Filter patterns
+    attr_accessor :patterns
+
     ##
     ## Print a message on the command line
     ##
@@ -65,7 +72,7 @@ module Planter
     def notify(string, notification_type = :info, exit_code: nil)
       case notification_type
       when :debug
-        warn "{dw}#{string}{x}".x if @debug
+        warn "\n{dw}#{string}{x}".x if @debug
       when :error
         warn "{br}#{string}{x}".x
       when :warn
@@ -98,7 +105,7 @@ module Planter
 
       @template = template
 
-      config = File.join(base_dir, 'config.yml')
+      config = File.join(base_dir, '_config.yml')
 
       unless File.exist?(config)
         default_config = {
@@ -111,13 +118,35 @@ module Planter
             min: '(optional, for number type set a minimum value)',
             max: '(optional, for number type set a maximum value)'
           ],
-          git: false
+          git: false,
+          files: { '*.tmp' => 'ignore' }
         }
         File.open(config, 'w') { |f| f.puts(YAML.dump(default_config.stringify_keys)) }
         puts "New configuration written to #{config}, please edit."
         Process.exit 0
       end
       @config = YAML.load(IO.read(config)).symbolize_keys
+      if @config[:files]&.is_a?(Array)
+        files = {}
+        @config[:files].each do |k, v|
+          files[k] = v
+        end
+        @config[:files] = files
+      end
+    end
+
+    def patterns
+      @patterns ||= process_patterns
+    end
+
+    def process_patterns
+      patterns = {}
+      @config[:files].each do |file, oper|
+        pattern = Regexp.new(".*?/#{file.to_s.sub(%r{^/}, '').gsub(/\./, '\.').gsub(/\*/, '.*?').gsub(/\?/, '.')}$")
+        operator = oper.normalize_operator
+        patterns[pattern] = operator
+      end
+      patterns
     end
 
     ##

@@ -226,6 +226,72 @@ module Planter
     end
 
     ##
+    ## Choose from an array of multiple choices. Letter surrounded in
+    ## parenthesis becomes character for response. Only one letter should be
+    ## specified and must be unique.
+    ##
+    ## @param      choices           [Array] The choices
+    ## @param      prompt            [String] The prompt
+    ## @param      default_response  [String] The character of the default
+    ##                               response
+    ##
+    ## @return     [String] character of selected response, lowercased
+    ##
+    def self.choice(choices, prompt = 'Make a selection', default_response: nil)
+      $stdin.reopen('/dev/tty')
+
+      default = default_response.is_a?(String) ? default_response.downcase : nil
+
+      # if this isn't an interactive shell, answer default
+      return default unless $stdout.isatty
+
+      # clear the buffer
+      if ARGV&.length
+        ARGV.length.times do
+          ARGV.shift
+        end
+      end
+      system 'stty cbreak'
+
+      vertical = choices.join(' ').length + 4 > TTY::Screen.cols
+      desc = choices.map { |c| c.highlight_character(default: default) }
+      abbr = choices.abbr_choices(default: default)
+
+      options = if vertical
+                  "{x}#{desc.join("\n")}\n{by}#{prompt}{x} #{abbr}{bw}? "
+                else
+                  "{by}#{prompt}{bw}?\n#{desc.join(', ')}{x} #{abbr}:{x} "
+                end
+
+      $stdout.syswrite options.x
+      res = $stdin.sysread 1
+      puts
+      system 'stty cooked'
+
+      res.chomp!
+      res.downcase!
+
+      res.empty? ? default : res
+    end
+
+    def self.file_what?(entry)
+      options = %w[(o)vewrite (m)erge]
+      options << '(c)opy' unless File.exist?(entry.target)
+      options << '(i)gnore'
+      opt = Prompt.choice(options, "What do you want to do with #{File.basename(entry.target)}", default_response: 'i')
+      case opt
+      when /^m/
+        :merge
+      when /^o/
+        :overwrite
+      when /^c/
+        :copy
+      else
+        :ignore
+      end
+    end
+
+    ##
     ## Ask a yes or no question in the terminal
     ##
     ## @param      question          [String] The question
@@ -235,7 +301,7 @@ module Planter
     ##
     ## @return     [Boolean] yes or no
     ##
-    def yn(question, default_response: false)
+    def self.yn(question, default_response: false)
       $stdin.reopen('/dev/tty')
 
       default = if default_response.is_a?(String)
@@ -260,6 +326,7 @@ module Planter
                 else
                   "{w}[#{default ? '{bg}Y{w}/{bw}n' : '{bw}y{w}/{bg}N'}{w}]"
                 end
+
       $stdout.syswrite "{bw}#{question.sub(/\?$/, '')} #{options}{bw}? {x}".x
       res = $stdin.sysread 1
       puts

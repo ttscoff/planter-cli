@@ -29,6 +29,7 @@ opts.on('--defaults', 'Accept default values for all variables') do
   Planter.defaults = true
 end
 
+Planter.target = Dir.pwd
 opts.on('-i', '--in TARGET', 'Plant in TARGET instead of current directory') do |opt|
   target = File.expand_path(opt)
   FileUtils.mkdir_p(target) unless File.exist?(target)
@@ -39,7 +40,7 @@ opts.on('-o', '--overwrite', 'Overwrite existing files') do
   Planter.overwrite = true
 end
 
-opts.on('-v', '--variable=KEY:VALUE,KEY:VALUE...', Array,
+opts.on('-k', '--var=KEY:VALUE,KEY:VALUE...', Array,
         'Pass a variable on the command line as KEY:VALUE pairs. Can be used multiple times.') do |opt|
   opt.each do |o|
     parts = o.split(/:/)
@@ -57,7 +58,7 @@ opts.on_tail('-h', '--help', 'Display this screen, or list variables for templat
   options[:help] = true
 end
 
-opts.on_tail('-v', '--version', 'Display version number') do
+opts.on_tail('--version', 'Display version number') do
   options[:version] = true
 end
 
@@ -66,13 +67,13 @@ opts.parse!
 def list_vars(template)
   puts "#{template} variables:"
   Planter.config = template
-  Planter.config[:variables].sort_by { |v| v[:name].to_var }.each do |var|
-    title = var[:prompt] || var[:name]
+  Planter.config[:variables].sort_by { |v| v[:key].to_var }.each do |var|
+    title = var[:prompt] || var[:key]
     var_type = var[:type].normalize_type || :string
     default = var[:value] || var[:default]
-    default = default ? " [default: #{default}]" : ''
+    default = default ? " [default: #{default.coerce(var_type)}]" : ''
     puts "#{title}:"
-    puts "  #{var[:name].to_var} (#{var_type})#{default}"
+    puts "  #{var[:key].to_var} (#{var_type})#{default}"
   end
 end
 

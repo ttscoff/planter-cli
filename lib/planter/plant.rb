@@ -14,6 +14,20 @@ module Planter
       @git = Planter.config[:git] || false
       @debug = Planter.debug
 
+      # Coerce any existing variables (like from the command line) to the types
+      # defined in configuration
+      coerced = {}
+      Planter.variables.each do |k, v|
+        cfg_var = Planter.config[:variables].select { |var| k = var[:key] }
+        next unless cfg_var.count.positive?
+
+        var = cfg_var.first
+        type = var[:type].normalize_type
+        coerced[k] = v.coerce(type)
+      end
+      coerced.each { |k, v| Planter.variables[k] = v }
+
+      # Ask user for any variables not already defined
       Planter.config[:variables].each do |var|
         key = var[:key].to_var
         next if Planter.variables.keys.include?(key)
@@ -33,8 +47,11 @@ module Planter
 
           answer = var[:default]
         end
+
         Planter.variables[key] = answer
       end
+
+      @files = FileList.new(@basedir)
     end
 
     ##
@@ -42,57 +59,64 @@ module Planter
     ##
     def plant
       Dir.chdir(@target)
-      title = "{bw}[{bg}:spinner{bw}] {w}Planting {bg}#{Planter.template}{x}".x
-      spinners = TTY::Spinner::Multi.new(title, format: :dots, success_mark: '{bg}✔{x}'.x, error_mark: '{br}✖{x}'.x)
+      # title = "{bw}[{bg}:spinner{bw}] {w}Planting {bg}#{Planter.template}{x}".x
+      # spinners = TTY::Spinner::Multi.new(title, hide_cursor: true, format: :dots, success_mark: '{bg}✔{x}'.x, error_mark: '{br}✖{x}'.x)
 
-      copy_spinner = spinners.register '{bw}[{by}:spinner{bw}] {w}Copy files and directories{x}'.x
-      var_spinner = spinners.register '{bw}[{by}:spinner{bw}] {w}Apply variables{x}'.x
-      git_spinner = spinners.register '{bw}[{by}:spinner{bw}] {w}Initialize git repo{x}'.x if @git
+      # copy_spinner = spinners.register '{bw}[{by}:spinner{bw}] {w}Copy files and directories{x}'.x
+      # var_spinner = spinners.register '{bw}[{by}:spinner{bw}] {w}Apply variables{x}'.x
+      # git_spinner = spinners.register '{bw}[{by}:spinner{bw}] {w}Initialize git repo{x}'.x if @git
 
-      spinners.auto_spin
-      copy_spinner.auto_spin
+      spinner = TTY::Spinner.new('{bw}[{by}:spinner{bw}] {w}:title'.x, hide_cursor: true, format: :dots, success_mark: '{bg}✔{x}'.x, error_mark: '{br}✖{x}'.x)
+      spinner.auto_spin
+      spinner.update(title: 'Copying files')
       res = copy_files
-
+      # spinners.auto_spin
+      # copy_spinner.auto_spin
       if res.is_a?(String)
-        spinners.error
-        copy_spinner.error("(#{res})")
+        # spinners.error
+        spinner.error("(#{res})")
         Process.exit 1
       else
-        copy_spinner.success
+        # spinner.success
       end
 
-      var_spinner.auto_spin
+      # var_spinner.auto_spin
+      spinner.update(title: 'Applying variables')
 
       res = update_files
       if res.is_a?(String)
-        spinners.error
-        var_spinner.error("(#{res})")
+        # spinners.error
+        spinner.error("(#{res})")
         Process.exit 1
       else
-        var_spinner.success
+        # spinner.success
       end
 
       if @git
-        git_spinner.auto_spin
-
+        # git_spinner.auto_spin
+        spinner.update(title: 'Initializing git repo')
         res = add_git
         if res.is_a?(String)
-          spinners.error
-          git_spinner.error("(#{res})")
+          # spinners.error
+          spinner.error("(#{res})")
           Process.exit 1
         else
-          git_spinner.success
+          # git_spinner.success
         end
       end
 
-      return unless Planter.config[:script]
+      if Planter.config[:script]
+        spinner.update(title: 'Running script')
 
-      scripts = Planter.config[:script]
-      scripts = [scripts] if scripts.is_a?(String)
-      scripts.each do |script|
-        s = Planter::Script.new(@basedir, Dir.pwd, script)
-        s.run
+        scripts = Planter.config[:script]
+        scripts = [scripts] if scripts.is_a?(String)
+        scripts.each do |script|
+          s = Planter::Script.new(@basedir, Dir.pwd, script)
+          s.run
+        end
       end
+      spinner.update(title: '😄')
+      spinner.success(' Planting complete!')
     end
 
     ##
@@ -101,24 +125,8 @@ module Planter
     ## @return     true if successful, otherwise error description
     ##
     def copy_files
-      base = File.realdirpath(@basedir)
-      path = File.join(base, '**/*')
-      template_files = Dir.glob(path, File::FNM_DOTMATCH).reject do |file|
-        file =~ %r{/(_scripts|\.git|config\.yml$|\.{1,2}$)}
-      end
-      template_files.sort_by!(&:length)
-
-      template_files.each do |file|
-        new_file = ".#{file.sub(/^#{base}/, '').apply_variables}"
-
-        FileUtils.mkdir_p(File.dirname(new_file))
-        FileUtils.cp(file, new_file) unless File.directory?(file) || (File.exist?(new_file) && !Planter.overwrite)
-      end
-
+      @files.copy
       true
-    rescue StandardError => e
-      Planter.notify("#{e}\n#{e.backtrace}", :debug)
-      'Error copying files/directories'
     end
 
     ##
@@ -129,14 +137,26 @@ module Planter
 
       files.each do |file|
         type = `file #{file}`
-        case type
+        case type.sub(/^#{Regexp.escape(file)}: /, '').split(/:/).first
         when /Apple binary property list/
           `plutil -convert xml1 #{file}`
+        when /data/
+          next
+        else
+          next if File.binary?(file)
         end
-        content = IO.read(file)
-        content.apply_variables!
 
-        File.open(file, 'w') { |f| f.puts content }
+        content = IO.read(file)
+        new_content = content.apply_variables
+
+        if new_content =~ /^.{.4}merge *\n/
+          new_content.gsub!(%r{^.{.4}/?merge *.{,4}\n}, '')
+        end
+
+        unless content == new_content
+          Planter.notify("Applying variables to #{file}", :debug)
+          File.open(file, 'w') { |f| f.puts new_content }
+        end
       end
 
       true
