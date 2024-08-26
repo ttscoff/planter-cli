@@ -26,7 +26,7 @@ module Planter
         @prompt = question[:prompt] || nil
         @default = question[:default]
         @value = question[:value]
-        @gum = TTY::Which.exist?('gum')
+        @gum = false # TTY::Which.exist?('gum')
       end
 
       ##
@@ -55,6 +55,8 @@ module Planter
               end
         Planter.notify("{dw}#{prompt}: {dy}#{res}{x}", :debug)
         res
+      rescue TTY::Reader::InputInterrupt
+        Planter.notify("Cancelled", :error, exit_code: 1)
       end
 
       private

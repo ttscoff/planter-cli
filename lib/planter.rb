@@ -129,7 +129,8 @@ module Planter
 
       load_template_config
 
-      convert_files_array if @config[:files].is_a?(Array)
+      config_array_to_hash(:files) if @config[:files].is_a?(Array)
+      config_array_to_hash(:replacements) if @config[:replacements].is_a?(Array)
     end
 
     def load_template_config
@@ -157,12 +158,12 @@ module Planter
       @config = @config.deep_merge(YAML.load(IO.read(config)).symbolize_keys)
     end
 
-    def convert_file_array
+    def config_array_to_hash(key)
       files = {}
-      @config[:files].each do |k, v|
+      @config[key].each do |k, v|
         files[k] = v
       end
-      @config[:files] = files
+      @config[key] = files
     end
 
     def patterns

@@ -153,6 +153,17 @@ module Planter
       content
     end
 
+    def apply_regexes
+      content = dup.clean_encode
+      return self unless Planter.config.key?(:replacements)
+
+      Planter.config[:replacements].stringify_keys.each do |pattern, replacement|
+        pattern = Regexp.new(pattern) unless pattern.is_a?(Regexp)
+        content.gsub!(pattern, replacement.apply_variables)
+      end
+      content
+    end
+
     ##
     ## Destructive version of #apply_variables
     ##
@@ -162,6 +173,15 @@ module Planter
     ##
     def apply_variables!(last_only: false)
       replace apply_variables(last_only: last_only)
+    end
+
+    ##
+    ## Destructive version of #apply_regexes
+    ##
+    ## @return     [String] string with variables substituted
+    ##
+    def apply_regexes!
+      replace apply_regexes
     end
 
     ##
