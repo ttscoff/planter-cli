@@ -28,6 +28,7 @@ scripts in planter/scripts or in TEMPLATE_NAME/\_scripts
 - scripts
 - git_init
 - merge markers
+- files dictionary
 
 ### Templates
 

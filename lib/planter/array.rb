@@ -13,7 +13,8 @@ module Planter
     ##
     def abbr_choices(default: nil)
       chars = join(' ').scan(/\((.)\)/).map { |c| c[0] }
-      out = '{xdw}['
+      out = String.new
+      out << '{xdw}['
       out << chars.map do |c|
         if default && c.downcase == default.downcase
           "{xbc}#{c}"

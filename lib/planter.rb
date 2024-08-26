@@ -100,10 +100,26 @@ module Planter
     ## @return     [Hash] Configuration object
     ##
     def config=(template)
+      @template = template
       Planter.variables ||= {}
-      base_dir = File.join(BASE_DIR, template)
+      base_config = File.join(BASE_DIR, 'config.yml')
+
+      unless File.exist?(base_config)
+        default_base_config = {
+          defaults: false,
+          git_init: false,
+          files: { '_config.yml' => 'ignore' },
+          color: true
+        }
+        File.open(base_config, 'w') { |f| f.puts(YAML.dump(default_base_config.stringify_keys)) }
+        puts "New configuration written to #{config}, edit as needed."
+      end
+
+      @config = YAML.load(IO.read(base_config)).symbolize_keys
+
+      base_dir = File.join(BASE_DIR, @template)
       unless File.directory?(base_dir)
-        notify("Template #{template} does not exist", :error)
+        notify("Template #{@template} does not exist", :error)
         res = yn('Create template directory', default_response: false)
 
         Planter.notify('Cancelled', :error, exit_code: 13) unless res
@@ -111,8 +127,13 @@ module Planter
         FileUtils.mkdir_p(base_dir)
       end
 
-      @template = template
+      load_template_config
 
+      convert_files_array if @config[:files].is_a?(Array)
+    end
+
+    def load_template_config
+      base_dir = File.join(BASE_DIR, @template)
       config = File.join(base_dir, '_config.yml')
 
       unless File.exist?(config)
@@ -133,10 +154,10 @@ module Planter
         puts "New configuration written to #{config}, please edit."
         Process.exit 0
       end
-      @config = YAML.load(IO.read(config)).symbolize_keys
+      @config = @config.deep_merge(YAML.load(IO.read(config)).symbolize_keys)
+    end
 
-      return unless @config[:files].is_a?(Array)
-
+    def convert_file_array
       files = {}
       @config[:files].each do |k, v|
         files[k] = v

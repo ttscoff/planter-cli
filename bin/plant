@@ -24,7 +24,7 @@ Planter.variables = {}
 opts = OptionParser.new
 opts.banner = 'Usage: planter [options] TEMPLATE'
 
-Planter.defaults = false
+Planter.accept_defaults = false
 opts.on('--defaults', 'Accept default values for all variables') do
   Planter.accept_defaults = true
 end

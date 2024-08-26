@@ -1,5 +1,3 @@
-inherit_from: .rubocop_todo.yml
-
 Style/RegexpLiteral:
   Exclude:
     - Guardfile
@@ -54,15 +52,14 @@ Metrics/ClassLength:
 Metrics/PerceivedComplexity:
   Max: 30
 
-Metrics/AbcSize:
-  Max: 45
+# Metrics/AbcSize:
+#   Max: 45
 
 Metrics/CyclomaticComplexity:
   Max: 20
 
 Metrics/AbcSize:
-  Exclude:
-    - 'lib/planter/plant.rb'
+  Enabled: false
 
 Metrics/ModuleLength:
   Max: 174
