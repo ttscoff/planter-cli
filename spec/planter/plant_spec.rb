@@ -3,6 +3,7 @@
 require 'spec_helper'
 
 describe Planter::Plant do
+  Planter.accept_defaults = true
   subject(:ruby_gem) { Planter::Plant.new('test', { project: 'Untitled', script: 'Script', title: 'Title' }) }
 
   describe '.new' do

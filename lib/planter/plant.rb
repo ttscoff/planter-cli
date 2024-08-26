@@ -134,9 +134,7 @@ module Planter
         content = IO.read(file)
         new_content = content.apply_variables
 
-        if new_content =~ /^.{.4}merge *\n/
-          new_content.gsub!(%r{^.{.4}/?merge *.{,4}\n}, '')
-        end
+        new_content.gsub!(%r{^.{.4}/?merge *.{,4}\n}, '') if new_content =~ /^.{.4}merge *\n/
 
         unless content == new_content
           Planter.notify("Applying variables to #{file}", :debug)

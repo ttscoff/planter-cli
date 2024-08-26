@@ -339,9 +339,9 @@ module Planter
     ##
     def highlight_character(default: nil)
       if default
-        gsub(/\((#{default})\)/, "{dw}({xbc}\\1{dw}){xw}").gsub(/\((.)\)/, "{dw}({xbw}\\1{dw}){xw}")
+        gsub(/\((#{default})\)/, '{dw}({xbc}\1{dw}){xw}').gsub(/\((.)\)/, '{dw}({xbw}\1{dw}){xw}')
       else
-        gsub(/\((.)\)/, "{dw}({xbw}\\1{dw}){xw}")
+        gsub(/\((.)\)/, '{dw}({xbw}\1{dw}){xw}')
       end
     end
   end

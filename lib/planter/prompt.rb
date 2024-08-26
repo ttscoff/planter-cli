@@ -245,6 +245,9 @@ module Planter
       # if this isn't an interactive shell, answer default
       return default unless $stdout.isatty
 
+      # If --defaults is set, return default
+      return default if Planter.accept_defaults
+
       # clear the buffer
       if ARGV&.length
         ARGV.length.times do
@@ -312,6 +315,9 @@ module Planter
 
       # if this isn't an interactive shell, answer default
       return default unless $stdout.isatty
+
+      # If --defaults is set, return default
+      return default if Planter.accept_defaults
 
       # clear the buffer
       if ARGV&.length

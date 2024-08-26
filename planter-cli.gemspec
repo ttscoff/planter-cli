@@ -21,6 +21,7 @@ Gem::Specification.new do |spec|
 
   spec.add_development_dependency 'bundler', '~> 2.2'
   spec.add_development_dependency 'rake', '~> 13.0'
+  spec.add_development_dependency 'bump', '~> 0.10'
 
   spec.add_development_dependency 'guard', '~> 2.11'
   spec.add_development_dependency 'guard-rspec', '~> 4.5'
@@ -40,6 +41,7 @@ Gem::Specification.new do |spec|
   spec.add_development_dependency 'yard', '~> 0.9.5'
   spec.add_development_dependency 'yard-slipstream', '~> 0.1.23'
 
+  spec.add_runtime_dependency 'english', '~> 0.8'
   spec.add_runtime_dependency 'tty-which', '~> 0.5'
   spec.add_runtime_dependency 'tty-spinner', '~> 0.9'
   spec.add_runtime_dependency 'tty-reader', '~> 0.9'

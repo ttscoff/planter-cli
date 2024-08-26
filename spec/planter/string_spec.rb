@@ -1,9 +1,9 @@
 require 'spec_helper'
 
-describe Planter::String do
+describe ::String do
   describe '.to_var' do
     it 'turns string into snake-cased symbol' do
-      expect ('This is a test string'.to_var).to eq :this_is_a_test_string
+      expect('This is a test string'.to_var).to be :this_is_a_test_string
     end
   end
 

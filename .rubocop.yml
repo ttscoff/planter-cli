@@ -1,3 +1,5 @@
+inherit_from: .rubocop_todo.yml
+
 Style/RegexpLiteral:
   Exclude:
     - Guardfile
@@ -15,10 +17,15 @@ AllCops:
     - lib/**/*.rb
   Exclude:
     - pkg/**/*.rb
+    - test/*
 
 require:
   - rubocop-rspec
   - rubocop-rake
+
+Security/YAMLLoad:
+  Exclude:
+    - 'lib/**/*.rb'
 
 Style/StringLiterals:
   Enabled: true
@@ -52,3 +59,18 @@ Metrics/AbcSize:
 
 Metrics/CyclomaticComplexity:
   Max: 20
+
+Metrics/AbcSize:
+  Exclude:
+    - 'lib/planter/plant.rb'
+
+Metrics/ModuleLength:
+  Max: 174
+
+Security/YAMLLoad:
+  Exclude:
+    - '**/*.rb'
+
+Style/ModuleFunction:
+  Exclude:
+    - 'lib/planter/color.rb'

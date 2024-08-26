@@ -26,7 +26,7 @@ opts.banner = 'Usage: planter [options] TEMPLATE'
 
 Planter.defaults = false
 opts.on('--defaults', 'Accept default values for all variables') do
-  Planter.defaults = true
+  Planter.accept_defaults = true
 end
 
 Planter.target = Dir.pwd

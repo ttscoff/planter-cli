@@ -38,9 +38,6 @@ module Planter
     ## Debug mode
     attr_accessor :debug
 
-    ## Accept defaults
-    attr_accessor :defaults
-
     ## Target
     attr_accessor :target
 
@@ -61,6 +58,9 @@ module Planter
 
     ## Filter patterns
     attr_writer :patterns
+
+    ## Accept all defaults
+    attr_accessor :accept_defaults
 
     ##
     ## Print a message on the command line
@@ -85,7 +85,11 @@ module Planter
     end
 
     def spinner
-      @spinner ||= TTY::Spinner.new('{bw}[{by}:spinner{bw}] {w}:title'.x, hide_cursor: true, format: :dots, success_mark: '{bg}✔{x}'.x, error_mark: '{br}✖{x}'.x)
+      @spinner ||= TTY::Spinner.new('{bw}[{by}:spinner{bw}] {w}:title'.x,
+                                    hide_cursor: true,
+                                    format: :dots,
+                                    success_mark: '{bg}✔{x}'.x,
+                                    error_mark: '{br}✖{x}'.x)
     end
 
     ##
