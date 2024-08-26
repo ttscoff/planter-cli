@@ -30,6 +30,40 @@ module Planter
     end
 
     ##
+    ## Public method for copying files based on their operator
+    ##
+    ## @return     [Boolean] success
+    ##
+    def copy
+      @files.each do |file|
+        handle_operator(file)
+      end
+    rescue StandardError => e
+      Planter.notify("#{e}\n#{e.backtrace}", :debug)
+      Planter.notify('Error copying files/directories', :error, exit_code: 128)
+    end
+
+    private
+
+    ##
+    ## Perform operations
+    ##
+    ## @param      entry  [FileEntry] The file entry
+    ##
+    def handle_operator(entry)
+      case entry.operation
+      when :ignore
+        false
+      when :overwrite
+        copy_file(entry, overwrite: true)
+      when :merge
+        File.exist?(entry.target) ? merge(entry) : copy_file(entry)
+      else
+        copy_file(entry)
+      end
+    end
+
+    ##
     ## Copy template files to new directory
     ##
     ## @return     [Boolean] success
@@ -53,22 +87,6 @@ module Planter
         file.operation = entry.operation if file.file =~ /^#{entry.file}/
       end
     end
-
-    ##
-    ## Public method for copying files based on their operator
-    ##
-    ## @return     [Boolean] success
-    ##
-    def copy
-      @files.each do |file|
-        handle_operator(file)
-      end
-    rescue StandardError => e
-      Planter.notify("#{e}\n#{e.backtrace}", :debug)
-      Planter.notify('Error copying files/directories', :error, exit_code: 128)
-    end
-
-    private
 
     ##
     ## Copy tagged merge sections from source to target
@@ -119,24 +137,6 @@ module Planter
       else
         Planter.notify("Skipped #{file.file} => #{file.target}", :debug)
         false
-      end
-    end
-
-    ##
-    ## Perform operations
-    ##
-    ## @param      entry  [FileEntry] The file entry
-    ##
-    def handle_operator(entry)
-      case entry.operation
-      when :ignore
-        false
-      when :overwrite
-        copy_file(entry, overwrite: true)
-      when :merge
-        File.exist?(entry.target) ? merge(entry) : copy_file(entry)
-      else
-        copy_file(entry)
       end
     end
   end

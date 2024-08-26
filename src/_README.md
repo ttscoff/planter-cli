@@ -9,6 +9,10 @@ Plant a file and directory structure using templates.
 
 ## Installation
 
+    gem install planter-cli
+
+Gum used if available.
+
 ## Configuration
 
 scripts in planter/scripts or in TEMPLATE_NAME/\_scripts
@@ -22,7 +26,8 @@ scripts in planter/scripts or in TEMPLATE_NAME/\_scripts
   # min: 1
   # max: 5
 - scripts
-- git
+- git_init
+- merge markers
 
 ### Templates
 

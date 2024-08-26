@@ -5,13 +5,13 @@ module Planter
   class Plant
     ## Initialize a new Plant object
     def initialize(template = nil, variables = nil)
-      Planter.variables = variables if variables&.is_a?(Hash)
+      Planter.variables = variables if variables.is_a?(Hash)
       Planter.config = template if template
 
       @basedir = File.join(Planter::BASE_DIR, Planter.template)
       @target = Planter.target || Dir.pwd
 
-      @git = Planter.config[:git] || false
+      @git = Planter.config[:git_init] || false
       @debug = Planter.debug
 
       # Coerce any existing variables (like from the command line) to the types
@@ -59,54 +59,39 @@ module Planter
     ##
     def plant
       Dir.chdir(@target)
-      # title = "{bw}[{bg}:spinner{bw}] {w}Planting {bg}#{Planter.template}{x}".x
-      # spinners = TTY::Spinner::Multi.new(title, hide_cursor: true, format: :dots, success_mark: '{bg}✔{x}'.x, error_mark: '{br}✖{x}'.x)
 
-      # copy_spinner = spinners.register '{bw}[{by}:spinner{bw}] {w}Copy files and directories{x}'.x
-      # var_spinner = spinners.register '{bw}[{by}:spinner{bw}] {w}Apply variables{x}'.x
-      # git_spinner = spinners.register '{bw}[{by}:spinner{bw}] {w}Initialize git repo{x}'.x if @git
-
-      spinner = TTY::Spinner.new('{bw}[{by}:spinner{bw}] {w}:title'.x, hide_cursor: true, format: :dots, success_mark: '{bg}✔{x}'.x, error_mark: '{br}✖{x}'.x)
-      spinner.auto_spin
-      spinner.update(title: 'Copying files')
+      Planter.spinner.auto_spin
+      Planter.spinner.update(title: 'Copying files')
       res = copy_files
-      # spinners.auto_spin
-      # copy_spinner.auto_spin
       if res.is_a?(String)
-        # spinners.error
-        spinner.error("(#{res})")
+        Planter.spinner.error("(#{res})")
         Process.exit 1
-      else
-        # spinner.success
       end
 
-      # var_spinner.auto_spin
-      spinner.update(title: 'Applying variables')
+      Planter.spinner.update(title: 'Applying variables')
 
       res = update_files
       if res.is_a?(String)
-        # spinners.error
-        spinner.error("(#{res})")
-        Process.exit 1
-      else
-        # spinner.success
+        Planter.spinner.error('(Error)')
+        Planter.notify(res, :error, exit_code: 1)
       end
 
       if @git
-        # git_spinner.auto_spin
-        spinner.update(title: 'Initializing git repo')
+        unless TTY::Which.exist?('git')
+          Planter.spinner.error('(Error)')
+          Planter.notify('Git executable not found', :error, exit_code: 1)
+        end
+
+        Planter.spinner.update(title: 'Initializing git repo')
         res = add_git
         if res.is_a?(String)
-          # spinners.error
-          spinner.error("(#{res})")
-          Process.exit 1
-        else
-          # git_spinner.success
+          Planter.spinner.error('(Error)')
+          Planter.notify(res, :error, exit_code: 1)
         end
       end
 
       if Planter.config[:script]
-        spinner.update(title: 'Running script')
+        Planter.spinner.update(title: 'Running script')
 
         scripts = Planter.config[:script]
         scripts = [scripts] if scripts.is_a?(String)
@@ -115,8 +100,8 @@ module Planter
           s.run
         end
       end
-      spinner.update(title: '😄')
-      spinner.success(' Planting complete!')
+      Planter.spinner.update(title: '😄')
+      Planter.spinner.success(' Planting complete!')
     end
 
     ##

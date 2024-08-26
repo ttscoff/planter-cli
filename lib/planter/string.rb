@@ -34,10 +34,27 @@ module Planter
     ## @return     Filename representation of the object.
     ##
     def to_slug
-      strip.no_ext.split(/(?=[A-Z])/).map(&:downcase).join('-')
-           .gsub(/[^a-z0-9_-]/i, '')
+      strip.split(/(?=[A-Z ])/).map(&:downcase).join('-')
+           .gsub(/[^a-z0-9_-]/i, &:slugify)
            .gsub(/-+/, '-')
            .gsub(/(^-|-$)/, '')
+    end
+
+    ## Convert some characters to text
+    ##
+    ## @return [String] slugified character or empty string
+    ##
+    def slugify
+      char = to_s
+      slug_version = {
+        '.' => 'dot',
+        '/' => 'slash',
+        ':' => 'colon',
+        ',' => 'comma',
+        '!' => 'bang',
+        '#' => 'hash'
+      }
+      slug_version[char] ? "-#{slug_version[char]}-" : ''
     end
 
     ##
@@ -155,7 +172,7 @@ module Planter
     ## @return     [String] string with no extension
     ##
     def no_ext
-      sub(/\.\w+$/, '')
+      sub(/\.\w{2,4}$/, '')
     end
 
     ##

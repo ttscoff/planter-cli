@@ -36,7 +36,10 @@ module Planter
     end
 
     ##
-    ## Determine operators based on configured filters
+    ## Determine operators based on configured filters,
+    ## asking for input if necessary
+    ##
+    ## @return     [Symbol] Operator
     ##
     def test_operator
       operator = Planter.overwrite ? :overwrite : :copy

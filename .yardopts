@@ -1,5 +1,6 @@
 --markup=markdown
---list-undoc
+--private
+--protected
 lib/**/*.rb
 -
 README.md

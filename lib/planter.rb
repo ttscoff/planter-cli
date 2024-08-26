@@ -84,6 +84,10 @@ module Planter
       Process.exit exit_code unless exit_code.nil?
     end
 
+    def spinner
+      @spinner ||= TTY::Spinner.new('{bw}[{by}:spinner{bw}] {w}:title'.x, hide_cursor: true, format: :dots, success_mark: '{bg}✔{x}'.x, error_mark: '{br}✖{x}'.x)
+    end
+
     ##
     ## Build a configuration from template name
     ##
@@ -118,7 +122,7 @@ module Planter
             min: '(optional, for number type set a minimum value)',
             max: '(optional, for number type set a maximum value)'
           ],
-          git: false,
+          git_init: false,
           files: { '*.tmp' => 'ignore' }
         }
         File.open(config, 'w') { |f| f.puts(YAML.dump(default_config.stringify_keys)) }
