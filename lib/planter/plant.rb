@@ -3,7 +3,12 @@
 module Planter
   # Primary class
   class Plant
+    ##
     ## Initialize a new Plant object
+    ##
+    ## @param      template   [String] the template name
+    ## @param      variables  [Hash] Pre-populated variables
+    ##
     def initialize(template = nil, variables = nil)
       Planter.variables = variables if variables.is_a?(Hash)
       Planter.config = template if template
@@ -61,7 +66,7 @@ module Planter
     ## Expand GitHub name to full path
     ##
     ## @example Pass a GitHub-style repo path and get full url
-    ##.  expand_repo("ttscoff/planter-cli") #=> https://github.com/ttscoff/planter-cli.git
+    ##   expand_repo("ttscoff/planter-cli") #=> https://github.com/ttscoff/planter-cli.git
     ##
     ## @return     { description_of_the_return_value }
     ##
@@ -69,29 +74,41 @@ module Planter
       repo =~ %r{(?!=http)\w+/\w+} ? "https://github.com/#{repo}.git" : repo
     end
 
+    ##
+    ## Directory for repo, subdirectory of template
+    ##
+    ## @return     [String] repo path
+    ##
     def repo_dir
       File.join(@basedir, File.basename(@repo).sub(/\.git$/, ''))
     end
 
+    ##
+    ## Pull or clone a git repo
+    ##
+    ## @return     [String] new base directory
+    ##
     def git_pull
+      Planter.spinner.update(title: 'Pulling git repo')
+
       pwd = Dir.pwd
       @repo = expand_repo(@repo)
 
       if File.exist?(repo_dir)
         Dir.chdir(repo_dir)
-        raise GitPullError.new "Directory #{repo_dir} exists but is not git repo" unless File.exist?('.git')
+        raise GitPullError.new("Directory #{repo_dir} exists but is not git repo") unless File.exist?('.git')
 
-        `git pull`
+        res = `git pull`
+        raise Errors::GitPullError.new("Error pulling #{@repo}:\n#{res}") unless $CHILD_STATUS.success?
       else
         Dir.chdir(@basedir)
         res = `git clone "#{@repo}" "#{repo_dir}"`
-        raise Errors::GitPullError.new "Error pulling #{@repo}:\n#{res}" unless $CHILD_STATUS.success?
-
+        raise Errors::GitPullError.new("Error cloning #{@repo}:\n#{res}") unless $CHILD_STATUS.success?
       end
       Dir.chdir(pwd)
       @basedir = repo_dir
     rescue StandardError => e
-      raise Errors::GitPullError.new "Error pulling #{@repo}:\n#{e.message}"
+      raise Errors::GitPullError.new("Error pulling #{@repo}:\n#{e.message}")
     end
 
     ##

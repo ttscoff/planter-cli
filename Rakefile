@@ -87,7 +87,7 @@ task :dockertest, :version, :login, :attempt do |_, args|
 
   puts `docker build . --file #{file} -t #{img}`
 
-  raise DockerError.new, 'Error building docker image' unless $CHILD_STATUS.success?
+  raise DockerError.new('Error building docker image') unless $CHILD_STATUS.success?
 
   dirs = {
     File.dirname(__FILE__) => '/planter',
@@ -100,7 +100,7 @@ task :dockertest, :version, :login, :attempt do |_, args|
 
   spinner.auto_spin
   `docker run --rm #{dir_args} -it #{img}`
-  raise DockerError.new, 'Error running docker image' unless $CHILD_STATUS.success?
+  raise DockerError.new('Error running docker image') unless $CHILD_STATUS.success?
 
   # commit = puts `bash -c "docker commit $(docker ps -a|grep #{img}|awk '{print $1}'|head -n 1) #{img}"`.strip
   spinner.success
@@ -109,7 +109,7 @@ task :dockertest, :version, :login, :attempt do |_, args|
   puts res
   # puts commit&.empty? ? "Error commiting Docker tag #{img}" : "Committed Docker tag #{img}"
 rescue DockerError
-  raise StandardError, 'Docker not responding' if args[:attempt] > 3
+  raise StandardError('Docker not responding') if args[:attempt] > 3
 
   `open -a Docker`
   sleep 3

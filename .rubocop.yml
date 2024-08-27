@@ -1,3 +1,5 @@
+inherit_from: .rubocop_todo.yml
+
 Style/RegexpLiteral:
   Exclude:
     - Guardfile
@@ -71,3 +73,6 @@ Security/YAMLLoad:
 Style/ModuleFunction:
   Exclude:
     - 'lib/planter/color.rb'
+
+Style/RaiseArgs:
+  EnforcedStyle: compact

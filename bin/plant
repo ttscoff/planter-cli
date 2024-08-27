@@ -20,6 +20,7 @@ options = {
 #   min: 1
 #   max: 5
 Planter.variables = {}
+Planter::Color.coloring = $stdout.isatty
 
 opts = OptionParser.new
 opts.banner = 'Usage: planter [options] TEMPLATE'
@@ -76,9 +77,9 @@ def list_vars(template)
     title = var[:prompt] || var[:key]
     var_type = var[:type].normalize_type || :string
     default = var[:value] || var[:default]
-    default = default ? " [default: #{default.coerce(var_type)}]" : ''
+    default = default ? ", default: #{default.coerce(var_type)}" : ''
     puts "#{title}:"
-    puts "  #{var[:key].to_var} (#{var_type})#{default}"
+    puts "  [#{var[:key].to_var}] (type: #{var_type}#{default})"
   end
 end
 
@@ -93,10 +94,8 @@ elsif options[:help]
   end
   Process.exit 0
 elsif ARGV.count.zero?
-  Planter.notify('Template argument required', :error, exit_code: 12)
+  raise Planter::Errors::ArgumentError.new 'Template argument required'
 end
-
-Planter::Color.coloring = $stdout.isatty
 
 ARGV.each do |template|
   Planter.config = template

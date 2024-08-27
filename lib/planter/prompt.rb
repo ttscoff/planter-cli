@@ -1,8 +1,5 @@
 # frozen_string_literal: true
 
-require 'chronic'
-require 'tty-which'
-
 module Planter
   # Individual question
   module Prompt
@@ -56,7 +53,7 @@ module Planter
         Planter.notify("{dw}#{prompt}: {dy}#{res}{x}", :debug)
         res
       rescue TTY::Reader::InputInterrupt
-        Planter.notify("Cancelled", :error, exit_code: 1)
+        raise Errors::InputError('Canceled')
       end
 
       private

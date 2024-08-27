@@ -9,10 +9,11 @@ require 'fileutils'
 require 'open3'
 require 'english'
 
-require 'tty-which'
+require 'chronic'
 require 'tty-reader'
 require 'tty-screen'
 require 'tty-spinner'
+require 'tty-which'
 
 require_relative 'planter/version'
 require_relative 'planter/hash'
@@ -85,6 +86,11 @@ module Planter
       Process.exit exit_code unless exit_code.nil?
     end
 
+    ##
+    ## Global progress indicator reader, will init if nil
+    ##
+    ## @return     [TTY::Spinner] Spinner object
+    ##
     def spinner
       @spinner ||= TTY::Spinner.new('{bw}[{by}:spinner{bw}] {w}:title'.x,
                                     hide_cursor: true,
@@ -101,6 +107,7 @@ module Planter
     ## @return     [Hash] Configuration object
     ##
     def config=(template)
+      Planter.spinner.update(title: 'Initializing configuration')
       @template = template
       Planter.variables ||= {}
       base_config = File.join(BASE_DIR, 'config.yml')
@@ -123,7 +130,7 @@ module Planter
         notify("Template #{@template} does not exist", :error)
         res = yn('Create template directory', default_response: false)
 
-        Planter.notify('Cancelled', :error, exit_code: 13) unless res
+        raise Errors::InputError.new('Canceled') unless res
 
         FileUtils.mkdir_p(base_dir)
       end
@@ -136,6 +143,11 @@ module Planter
       raise Errors::ConfigError.new "Parse error in configuration file:\n#{e.message}"
     end
 
+    ##
+    ## Load a template-specific configuration
+    ##
+    ## @return     [Hash] updated config object
+    ##
     def load_template_config
       base_dir = File.join(BASE_DIR, @template)
       config = File.join(base_dir, '_config.yml')
@@ -161,6 +173,11 @@ module Planter
       @config = @config.deep_merge(YAML.load(IO.read(config)).symbolize_keys)
     end
 
+    ##
+    ## Convert an errant array to a hash
+    ##
+    ## @param      key   [Symbol] The key in @config to convert
+    ##
     def config_array_to_hash(key)
       files = {}
       @config[key].each do |k, v|
@@ -169,6 +186,11 @@ module Planter
       @config[key] = files
     end
 
+    ##
+    ## Patterns reader, file handling config
+    ##
+    ## @return     [Hash] hash of file patterns
+    ##
     def patterns
       @patterns ||= process_patterns
     end

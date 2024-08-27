@@ -153,6 +153,11 @@ module Planter
       content
     end
 
+    ##
+    ## Apply regex replacements from @config[:replacements]
+    ##
+    ## @return     [String] string with regexes applied
+    ##
     def apply_regexes
       content = dup.clean_encode
       return self unless Planter.config.key?(:replacements)
