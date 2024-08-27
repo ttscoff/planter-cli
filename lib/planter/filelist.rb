@@ -110,7 +110,7 @@ module Planter
         content = IO.read(entry.file)
       end
 
-      merges = content.scan(%r{(?<=\A|\n).{,4}merge *\n(.*?)\n.{,4}/merge}m)&.map { |m| m[0].strip }
+      merges = content.scan(%r{(?<=\A|\n).{,4}merge *\n(.*?)\n.{,4}/merge}m)&.map { |m| m[0].strip.apply_variables.apply_regexes }
       merges = [content] if !merges || merges.empty?
       new_content = IO.read(entry.target)
       merges.delete_if { |m| new_content =~ /#{Regexp.escape(m)}/ }

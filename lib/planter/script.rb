@@ -34,7 +34,7 @@ module Planter
       base_dir = Planter::BASE_DIR
       return File.join(template_dir, '_scripts', script) if File.exist?(File.join(template_dir, '_scripts', script))
 
-      return File.join(base_dir, 'scripts', script) if File.exist?(File.join(base_dir, 'scritps', script))
+      return File.join(base_dir, 'scripts', script) if File.exist?(File.join(base_dir, 'scripts', script))
 
       nil
     end

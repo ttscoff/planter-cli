@@ -25,16 +25,19 @@ scripts in planter/scripts or in TEMPLATE_NAME/\_scripts
   # default: Untitled
   # min: 1
   # max: 5
-- scripts
+- script key, array, args passed TEMPLATE_DIR PWD
 - git_init
 - merge markers
 - files dictionary
+- replacements dictionary
 
 ### Templates
 
 Directories and files in ~/.config/planter/templates/TEMPLATE_NAME
 
 Use %%key%% in filenames, path names, and in text. Works in text files, RTF files, and any document that stores its values in plain text (like source code or XML) or Apple Binary Plist (like MindNode).
+
+Use replacments dictionary to perform your own search and replace on content and filenames.
 
 ## Usage
 

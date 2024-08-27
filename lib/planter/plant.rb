@@ -173,6 +173,7 @@ module Planter
 
         content = IO.read(file)
         new_content = content.apply_variables
+        new_content = new_content.apply_regexes
 
         new_content.gsub!(%r{^.{.4}/?merge *.{,4}\n}, '') if new_content =~ /^.{.4}merge *\n/
 
