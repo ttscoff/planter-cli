@@ -21,7 +21,7 @@ module Planter
       files.sort_by!(&:length)
 
       @files = files.map do |file|
-        new_file = "#{Planter.target}#{file.sub(/^#{@basedir}/, '').apply_variables}"
+        new_file = "#{Planter.target}#{file.sub(/^#{@basedir}/, '').apply_variables.apply_regexes}"
         operation = Planter.overwrite ? :overwrite : :copy
         FileEntry.new(file, new_file, operation)
       end

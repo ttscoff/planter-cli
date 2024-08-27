@@ -35,8 +35,59 @@ class ::Hash
     end
   end
 
+  ##
+  ## Deep merge a hash
+  ##
+  ## @param      second  [Hash] The hash to merge into self
+  ##
   def deep_merge(second)
     merger = proc { |_, v1, v2| Hash === v1 && Hash === v2 ? v1.merge(v2, &merger) : Array === v1 && Array === v2 ? v1 | v2 : [:undefined, nil, :nil].include?(v2) ? v1 : v2 }
     merge(second.to_h, &merger)
+  end
+
+  ##
+  ## Freeze all values in a hash
+  ##
+  ## @return     [Hash] Hash with all values frozen
+  ##
+  def deep_freeze
+    chilled = {}
+    each do |k, v|
+      chilled[k] = v.is_a?(Hash) ? v.deep_freeze : v.freeze
+    end
+
+    chilled.freeze
+  end
+
+  ##
+  ## Destructive version of #deep_freeze
+  ##
+  ## @return     [Hash] Hash with all values frozen
+  ##
+  def deep_freeze!
+    replace deep_thaw.deep_freeze
+  end
+
+  ##
+  ## Unfreeze a hash and all nested values
+  ##
+  ## @return     [Hash] unfrozen hash
+  ##
+  def deep_thaw
+    chilled = {}
+    each do |k, v|
+      chilled[k] = v.is_a?(Hash) ? v.deep_thaw : v.dup
+    end
+
+    chilled.dup
+  end
+
+  ##
+  ## Destructive version of #deep_thaw
+  ##
+  ## @return     [Hash] unfrozen hash
+  ##
+  def deep_thaw!
+    replace deep_thaw
   end
 end

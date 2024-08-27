@@ -15,14 +15,14 @@ require 'tty-screen'
 require 'tty-spinner'
 
 require_relative 'planter/version'
-require_relative 'planter/errors'
-require_relative 'planter/color'
 require_relative 'planter/hash'
+require_relative 'planter/array'
+require_relative 'planter/symbol'
+require_relative 'planter/file'
+require_relative 'planter/color'
+require_relative 'planter/errors'
 require_relative 'planter/prompt'
 require_relative 'planter/string'
-require_relative 'planter/array'
-require_relative 'planter/file'
-require_relative 'planter/symbol'
 require_relative 'planter/filelist'
 require_relative 'planter/fileentry'
 require_relative 'planter/plant'
@@ -132,6 +132,8 @@ module Planter
 
       config_array_to_hash(:files) if @config[:files].is_a?(Array)
       config_array_to_hash(:replacements) if @config[:replacements].is_a?(Array)
+    rescue Psych::SyntaxError => e
+      raise Errors::ConfigError.new "Parse error in configuration file:\n#{e.message}"
     end
 
     def load_template_config
