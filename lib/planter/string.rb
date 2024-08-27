@@ -159,7 +159,9 @@ module Planter
 
       Planter.config[:replacements].stringify_keys.each do |pattern, replacement|
         pattern = Regexp.new(pattern) unless pattern.is_a?(Regexp)
-        content.gsub!(pattern, replacement.apply_variables)
+        replacement = replacement.gsub(/\$(\d)/, '\\\1').apply_variables
+        pp [pattern, replacement]
+        content.gsub!(pattern, replacement)
       end
       content
     end

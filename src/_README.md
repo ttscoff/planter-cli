@@ -25,7 +25,7 @@ scripts in planter/scripts or in TEMPLATE_NAME/\_scripts
   # default: Untitled
   # min: 1
   # max: 5
-- scripts
+- script key, array, args passed TEMPLATE_DIR PWD
 - git_init
 - merge markers
 - files dictionary

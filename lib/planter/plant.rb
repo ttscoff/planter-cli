@@ -12,7 +12,6 @@ module Planter
       @target = Planter.target || Dir.pwd
 
       @git = Planter.config[:git_init] || false
-      @debug = Planter.debug
 
       # Coerce any existing variables (like from the command line) to the types
       # defined in configuration
