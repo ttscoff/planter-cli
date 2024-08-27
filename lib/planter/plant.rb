@@ -13,6 +13,7 @@ module Planter
 
       @git = Planter.config[:git_init] || false
       @debug = Planter.debug
+      @repo = Planter.config[:repo] || false
 
       # Coerce any existing variables (like from the command line) to the types
       # defined in configuration
@@ -51,7 +52,46 @@ module Planter
         Planter.variables[key] = answer
       end
 
+      git_pull if @repo
+
       @files = FileList.new(@basedir)
+    end
+
+    ##
+    ## Expand GitHub name to full path
+    ##
+    ## @example Pass a GitHub-style repo path and get full url
+    ##.  expand_repo("ttscoff/planter-cli") #=> https://github.com/ttscoff/planter-cli.git
+    ##
+    ## @return     { description_of_the_return_value }
+    ##
+    def expand_repo(repo)
+      repo =~ %r{(?!=http)\w+/\w+} ? "https://github.com/#{repo}.git" : repo
+    end
+
+    def repo_dir
+      File.join(@basedir, File.basename(@repo).sub(/\.git$/, ''))
+    end
+
+    def git_pull
+      pwd = Dir.pwd
+      @repo = expand_repo(@repo)
+
+      if File.exist?(repo_dir)
+        Dir.chdir(repo_dir)
+        raise GitPullError.new "Directory #{repo_dir} exists but is not git repo" unless File.exist?('.git')
+
+        `git pull`
+      else
+        Dir.chdir(@basedir)
+        res = `git clone "#{@repo}" "#{repo_dir}"`
+        raise Errors::GitPullError.new "Error pulling #{@repo}:\n#{res}" unless $CHILD_STATUS.success?
+
+      end
+      Dir.chdir(pwd)
+      @basedir = repo_dir
+    rescue StandardError => e
+      raise Errors::GitPullError.new "Error pulling #{@repo}:\n#{e.message}"
     end
 
     ##

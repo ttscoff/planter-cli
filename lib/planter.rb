@@ -15,6 +15,7 @@ require 'tty-screen'
 require 'tty-spinner'
 
 require_relative 'planter/version'
+require_relative 'planter/errors'
 require_relative 'planter/color'
 require_relative 'planter/hash'
 require_relative 'planter/prompt'

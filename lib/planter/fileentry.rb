@@ -71,8 +71,17 @@ module Planter
     ##
     ## @return     [String] String representation of the object.
     ##
-    def to_s
+    def inspect
       "<FileEntry: @file: #{@file}, @target: #{@target}, @operation: #{@operation}>"
+    end
+
+    ##
+    ## Returns a string representation of the object contents.
+    ##
+    ## @return     [String] String representation of the object.
+    ##
+    def to_s
+      File.binary?(@file) ? 'Binary file' : IO.read(@file).to_s
     end
   end
 end
