@@ -34,9 +34,9 @@ module Planter
     end
 
     ## Git error class
-    class GitPullError < StandardError
+    class GitError < StandardError
       def initialize(msg = nil)
-        msg = msg ? "Git pull: #{msg}" : 'Git pull error'
+        msg = msg ? "Git: #{msg}" : 'Git error'
 
         Planter.spinner.error('(Error)')
         Planter.notify(msg, :error, exit_code: EXIT_CODES[:git])

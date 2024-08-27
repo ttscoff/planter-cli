@@ -1,5 +1,3 @@
-inherit_from: .rubocop_todo.yml
-
 Style/RegexpLiteral:
   Exclude:
     - Guardfile
@@ -19,9 +17,11 @@ AllCops:
     - pkg/**/*.rb
     - test/*
 
-require:
-  - rubocop-rspec
-  - rubocop-rake
+Style/MutableConstant:
+  Enabled: false
+
+Style/SpecialGlobalVars:
+  Enabled: false
 
 Security/YAMLLoad:
   Exclude:

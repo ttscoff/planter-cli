@@ -4,8 +4,8 @@ require 'bump/tasks'
 require 'bundler/gem_tasks'
 require 'rspec/core/rake_task'
 require 'rubocop/rake_task'
-require 'english'
 require 'yard'
+require 'tty-spinner'
 
 ## Docker error class
 class DockerError < StandardError
@@ -72,44 +72,48 @@ task :dockertest, :version, :login, :attempt do |_, args|
     end
     Process.exit 0
   when /^3/
+    version = '3.0'
     img = 'plantertest3'
     file = 'docker/Dockerfile-3.0'
   when /6$/
+    version = '2.6'
     img = 'plantertest26'
     file = 'docker/Dockerfile-2.6'
   when /(^2|7$)/
+    version = '2.7'
     img = 'plantertest27'
     file = 'docker/Dockerfile-2.7'
   else
+    version = '3.0.1'
     img = 'plantertest'
     file = 'docker/Dockerfile'
   end
 
   puts `docker build . --file #{file} -t #{img}`
 
-  raise DockerError.new('Error building docker image') unless $CHILD_STATUS.success?
+  raise DockerError.new('Error building docker image') unless $?.success?
 
   dirs = {
     File.dirname(__FILE__) => '/planter',
-    File.expand_path('~/.config/planter/templates') => '/root/.config/planter/templates'
+    File.expand_path('~/.config') => '/root/.config'
   }
-  dir_args = dirs.map { |s, d| " -v #{s}:#{d}" }
+  dir_args = dirs.map { |s, d| " -v '#{s}:#{d}'" }.join(' ')
   exec "docker run #{dir_args} -it #{img} /bin/bash -l" if args[:login]
 
-  spinner = TTY::Spinner.new('[:spinner] Running tests ...', hide_cursor: true)
+  spinner = TTY::Spinner.new("[:spinner] Running tests (#{args[:version]})...", hide_cursor: true)
 
   spinner.auto_spin
-  `docker run --rm #{dir_args} -it #{img}`
-  raise DockerError.new('Error running docker image') unless $CHILD_STATUS.success?
+  res = `docker run --rm #{dir_args} -it #{img}`
+  # raise DockerError.new('Error running docker image') unless $?.success?
 
   # commit = puts `bash -c "docker commit $(docker ps -a|grep #{img}|awk '{print $1}'|head -n 1) #{img}"`.strip
-  spinner.success
+  $?.success? ? spinner.success : spinner.error
   spinner.stop
 
-  puts res
+  # puts res
   # puts commit&.empty? ? "Error commiting Docker tag #{img}" : "Committed Docker tag #{img}"
 rescue DockerError
-  raise StandardError('Docker not responding') if args[:attempt] > 3
+  raise StandardError.new('Docker not responding') if args[:attempt] > 3
 
   `open -a Docker`
   sleep 3

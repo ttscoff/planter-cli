@@ -1,5 +1,7 @@
-#!/usr/bin/env ruby -W1
+#!/usr/bin/env ruby
 # frozen_string_literal: true
+
+$VERBOSE = true
 
 require 'optparse'
 require_relative '../lib/planter'

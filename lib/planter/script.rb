@@ -31,10 +31,9 @@ module Planter
     ## @return     [String] Path to script
     ##
     def find_script(template_dir, script)
-      base_dir = Planter::BASE_DIR
       return File.join(template_dir, '_scripts', script) if File.exist?(File.join(template_dir, '_scripts', script))
 
-      return File.join(base_dir, 'scripts', script) if File.exist?(File.join(base_dir, 'scripts', script))
+      return File.join(BASE_DIR, 'scripts', script) if File.exist?(File.join(BASE_DIR, 'scripts', script))
 
       nil
     end
@@ -47,7 +46,7 @@ module Planter
     def run
       `#{@script} "#{@template_directory}" "#{@directory}"`
 
-      Planter.notify("Error running #{File.basename(@script)}", :error, exit_code: 128) unless $CHILD_STATUS.success?
+      Planter.notify("Error running #{File.basename(@script)}", :error, exit_code: 128) unless $?.success?
 
       true
     end

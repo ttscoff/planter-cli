@@ -4,10 +4,8 @@ require 'time'
 require 'shellwords'
 require 'json'
 require 'yaml'
-require 'chronic'
 require 'fileutils'
 require 'open3'
-require 'english'
 
 require 'chronic'
 require 'tty-reader'
@@ -31,7 +29,7 @@ require_relative 'planter/plant'
 # Main Journal module
 module Planter
   # Base directory for templates
-  BASE_DIR = File.expand_path('~/.config/planter/templates/')
+  BASE_DIR = File.expand_path('~/.config/planter/')
 
   class << self
     include Color
@@ -110,6 +108,7 @@ module Planter
       Planter.spinner.update(title: 'Initializing configuration')
       @template = template
       Planter.variables ||= {}
+      FileUtils.mkdir_p(BASE_DIR) unless File.directory?(BASE_DIR)
       base_config = File.join(BASE_DIR, 'config.yml')
 
       unless File.exist?(base_config)
@@ -120,15 +119,15 @@ module Planter
           color: true
         }
         File.open(base_config, 'w') { |f| f.puts(YAML.dump(default_base_config.stringify_keys)) }
-        puts "New configuration written to #{config}, edit as needed."
+        Planter.notify("New configuration written to #{config}, edit as needed.", :warn)
       end
 
       @config = YAML.load(IO.read(base_config)).symbolize_keys
 
-      base_dir = File.join(BASE_DIR, @template)
+      base_dir = File.join(BASE_DIR, 'templates', @template)
       unless File.directory?(base_dir)
         notify("Template #{@template} does not exist", :error)
-        res = yn('Create template directory', default_response: false)
+        res = Prompt.yn('Create template directory', default_response: false)
 
         raise Errors::InputError.new('Canceled') unless res
 
@@ -149,7 +148,7 @@ module Planter
     ## @return     [Hash] updated config object
     ##
     def load_template_config
-      base_dir = File.join(BASE_DIR, @template)
+      base_dir = File.join(BASE_DIR, 'templates', @template)
       config = File.join(base_dir, '_config.yml')
 
       unless File.exist?(config)

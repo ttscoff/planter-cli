@@ -13,7 +13,7 @@ module Planter
       Planter.variables = variables if variables.is_a?(Hash)
       Planter.config = template if template
 
-      @basedir = File.join(Planter::BASE_DIR, Planter.template)
+      @basedir = File.join(Planter::BASE_DIR, 'templates', Planter.template)
       @target = Planter.target || Dir.pwd
 
       @git = Planter.config[:git_init] || false
@@ -91,24 +91,26 @@ module Planter
     def git_pull
       Planter.spinner.update(title: 'Pulling git repo')
 
+      raise Errors::GitError.new('`git` executable not found') unless TTY::Which.exist?('git')
+
       pwd = Dir.pwd
       @repo = expand_repo(@repo)
 
       if File.exist?(repo_dir)
         Dir.chdir(repo_dir)
-        raise GitPullError.new("Directory #{repo_dir} exists but is not git repo") unless File.exist?('.git')
+        raise Errors::GitError.new("Directory #{repo_dir} exists but is not git repo") unless File.exist?('.git')
 
         res = `git pull`
-        raise Errors::GitPullError.new("Error pulling #{@repo}:\n#{res}") unless $CHILD_STATUS.success?
+        raise Errors::GitError.new("Error pulling #{@repo}:\n#{res}") unless $?.success?
       else
         Dir.chdir(@basedir)
         res = `git clone "#{@repo}" "#{repo_dir}"`
-        raise Errors::GitPullError.new("Error cloning #{@repo}:\n#{res}") unless $CHILD_STATUS.success?
+        raise Errors::GitError.new("Error cloning #{@repo}:\n#{res}") unless $?.success?
       end
       Dir.chdir(pwd)
       @basedir = repo_dir
     rescue StandardError => e
-      raise Errors::GitPullError.new("Error pulling #{@repo}:\n#{e.message}")
+      raise Errors::GitError.new("Error pulling #{@repo}:\n#{e.message}")
     end
 
     ##
@@ -134,10 +136,7 @@ module Planter
       end
 
       if @git
-        unless TTY::Which.exist?('git')
-          Planter.spinner.error('(Error)')
-          Planter.notify('Git executable not found', :error, exit_code: 1)
-        end
+        raise Errors::GitError.new('`git` executable not found') unless TTY::Which.exist?('git')
 
         Planter.spinner.update(title: 'Initializing git repo')
         res = add_git
