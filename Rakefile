@@ -49,6 +49,13 @@ task :ver do
   puts "changelog: #{cver}"
 end
 
+desc 'Get Script Version'
+task :sver do
+  res = `grep VERSION lib/planter/version.rb`
+  version = res.match(/VERSION *= *['"](\d+\.\d+\.\d+(\w+)?)/)[1]
+  print version
+end
+
 desc 'Changelog version check'
 task :cver do
   puts IO.read(File.join(File.dirname(__FILE__), 'CHANGELOG.md')).match(/^#+ (\d+\.\d+\.\d+(\w+)?)/)[1]

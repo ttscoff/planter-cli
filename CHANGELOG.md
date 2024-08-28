@@ -1,25 +1,10 @@
 ### 0.0.3
 
-2024-08-27 11:05
+2024-08-28 06:30
 
-#### NEW
+#### CHANGED
 
-- Replacements key in config for a dictionary of regex patterns and replacements
-- Add repo key to config, pull a git repo
-
-#### IMPROVED
-
-- Adding tests
-- Better error reporting
-- More custom error handling
-- Rubocop warnings
-- Better Docker config for testing
-
-#### FIXED
-
-- Merge wasn't populating template placeholders
-- Remove flags from hashbang for wider compatibility
-- Place main config in ~/.config/planter and not in planter/templates
+- Change template config from _config.yml to _planter.yml
 
 ### 0.0.2
 
