@@ -303,16 +303,25 @@ module Planter
     ##
     def normalize_type
       case self
+      # date
       when /^da/
         :date
+      # integer
       when /^i/
         :integer
+      # number or float
       when /^[nf]/
         :float
+      # multiline or paragraph
+      when /^(mu|p)/
+        :multiline
+      # class
       when /^c/
         :class
+      # module
       when /^m/
         :module
+      # string
       else
         :string
       end

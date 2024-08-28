@@ -17,9 +17,9 @@ module Planter
       ##
       def initialize(question)
         @key = question[:key].to_var
-        @type = question[:type].to_s.normalize_type
-        @min = question[:min]&.to_f || 1
-        @max = question[:max]&.to_f || 10
+        @type = question[:type].normalize_type
+        @min = question[:min]&.to_f || 1.0
+        @max = question[:max]&.to_f || 10.0
         @prompt = question[:prompt] || nil
         @default = question[:default]
         @value = question[:value]
@@ -34,13 +34,13 @@ module Planter
       def ask
         return nil if @prompt.nil?
 
+        return @value.to_s.apply_variables.apply_regexes.coerce(@type) if @value
+
         res = case @type
               when :integer
                 read_number(integer: true)
               when :float
                 read_number
-              when :string
-                read_line
               when :date
                 if @value
                   date_default
@@ -49,6 +49,10 @@ module Planter
                 end
               when :class || :module
                 read_line.to_class_name
+              when :multiline
+                read_lines
+              else
+                read_line
               end
         Planter.notify("{dw}#{prompt}: {dy}#{res}{x}", :debug)
         res
@@ -129,7 +133,7 @@ module Planter
       ## @return     [String] the single-line response
       ##
       def read_line(prompt: nil)
-        prompt ||= @prompt
+        prompt ||= read_lines @prompt
         default = @default ? " {bw}[#{@default}]" : ''
         Planter.notify("{by}#{prompt}#{default}")
 
@@ -152,7 +156,7 @@ module Planter
       def read_lines(prompt: nil)
         prompt ||= @prompt
         save = @gum ? 'Ctrl-J for newline, Enter' : 'Ctrl-D'
-        Planter.notify("{by}#{prompt} {c}({bw}#{save}{c} to save)'")
+        Planter.notify("{by}#{prompt} {xc}({bw}#{save}{xc} to save)'")
         res = @gum ? read_multiline_gum(prompt) : read_mutliline_tty
 
         return @default unless res

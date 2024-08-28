@@ -41,16 +41,16 @@ First, there's a `variables` section that defines variables used in the template
 variables:
   - key: var_key
     prompt: Prompt text
-    type: string # [string,float,integer,number,date]
-    value: (for date type can be today, time, now, etc.)
+    type: string # [string,multiline,float,integer,number,date] defaults to string
+    # value: (force value, string can include %%variables%% and regexes will be replaced. For date type can be today, time, now, etc.)
     default: Untitled
     min: 1
     max: 5
-script: # array of scripts, args passed TEMPLATE_DIR PWD
+script: # array of scripts, args passed as [script and args] TEMPLATE_DIR PWD
   - process.py
 git_init: false # if true, initialize a git repository in the newly-planted directory
-files: # Dictionary for file handling (see documentation)
-replacements: # Dictionary of pattern/replacments for regex substitution
+files: # Dictionary for file handling (see [File-specific handling](#file-specific-handling))
+replacements: # Dictionary of pattern/replacments for regex substitution, see [Regex replacements](#regex-replacements)
 repo: # If a repository URL is provided, it will be pulled and duplicated instead of copying a file structure
 ```
 
@@ -94,7 +94,7 @@ The executable for Planter is `plant`. You can run `plant TEMPLATE` in any direc
 
 ```
 Usage: planter [options] TEMPLATE
-    --defaults                   Accept default values for all variables
+    --defaults                       Accept default values for all variables
     -i, --in TARGET                  Plant in TARGET instead of current directory
     -o, --overwrite                  Overwrite existing files
     -k, --var=KEY:VALUE,KEY:VALUE... Pass a variable on the command line as KEY:VALUE pairs. Can be used multiple times.

@@ -10,6 +10,14 @@ class ::Symbol
     to_s.to_var
   end
 
+  # Handle calling normalize_type on a Symbol
+  #
+  # @return     [Symbol] same symbol, normalized if needed
+  #
+  def normalize_type
+    to_s.normalize_type
+  end
+
   # Handle calling normalize_operator on a Symbol
   #
   # @return     [Symbol] same symbol, normalized if needed
