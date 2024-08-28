@@ -39,10 +39,6 @@ opts.on('-i', '--in TARGET', 'Plant in TARGET instead of current directory') do 
   Planter.target = target
 end
 
-opts.on('-o', '--overwrite', 'Overwrite existing files') do
-  Planter.overwrite = true
-end
-
 opts.on('-k', '--var=KEY:VALUE,KEY:VALUE...', Array,
         'Pass a variable on the command line as KEY:VALUE pairs. Can be used multiple times.') do |opt|
   opt.each do |o|
@@ -53,6 +49,10 @@ opts.on('-k', '--var=KEY:VALUE,KEY:VALUE...', Array,
   end
 end
 
+opts.on('-o', '--overwrite', 'Overwrite existing files') do
+  Planter.overwrite = true
+end
+
 opts.on_tail('-d', '--debug', 'Display version number') do
   Planter.debug = true
 end
@@ -61,7 +61,7 @@ opts.on_tail('-h', '--help', 'Display this screen, or list variables for templat
   options[:help] = true
 end
 
-opts.on_tail('--version', 'Display version number') do
+opts.on_tail('-v', '--version', 'Display version number') do
   options[:version] = true
 end
 

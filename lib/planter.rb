@@ -115,7 +115,7 @@ module Planter
         default_base_config = {
           defaults: false,
           git_init: false,
-          files: { '_config.yml' => 'ignore' },
+          files: { '_planter.yml' => 'ignore' },
           color: true
         }
         File.open(base_config, 'w') { |f| f.puts(YAML.dump(default_base_config.stringify_keys)) }
@@ -149,7 +149,7 @@ module Planter
     ##
     def load_template_config
       base_dir = File.join(BASE_DIR, 'templates', @template)
-      config = File.join(base_dir, '_config.yml')
+      config = File.join(base_dir, '_planter.yml')
 
       unless File.exist?(config)
         default_config = {

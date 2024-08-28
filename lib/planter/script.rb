@@ -31,9 +31,14 @@ module Planter
     ## @return     [String] Path to script
     ##
     def find_script(template_dir, script)
-      return File.join(template_dir, '_scripts', script) if File.exist?(File.join(template_dir, '_scripts', script))
+      parts = Shellwords.split(script).first
+      return script if File.exist?(parts[0])
 
-      return File.join(BASE_DIR, 'scripts', script) if File.exist?(File.join(BASE_DIR, 'scripts', script))
+      if File.exist?(File.join(template_dir, '_scripts', parts[0]))
+        return "#{File.join(template_dir, '_scripts', parts[0])} #{parts[1..-1]}"
+      elsif File.exist?(File.join(BASE_DIR, 'scripts', parts[0]))
+        return "#{File.join(BASE_DIR, 'scripts', parts[0])} #{parts[1..-1]}"
+      end
 
       nil
     end
