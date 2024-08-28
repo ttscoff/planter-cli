@@ -3,5 +3,5 @@
 # Primary module for this gem.
 module Planter
   # Current Planter version.
-  VERSION = '0.0.4-alpha'
+  VERSION = '0.0.4-beta'
 end
