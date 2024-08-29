@@ -1,0 +1,6 @@
+---
+defaults: false
+git_init: false
+files:
+  _planter.yml: ignore
+color: true

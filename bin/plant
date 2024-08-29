@@ -22,6 +22,7 @@ options = {
 #   min: 1
 #   max: 5
 Planter.variables = {}
+Planter.base_dir = ENV['PLANTER_DIR'] || File.expand_path('~/.config/planter')
 Planter::Color.coloring = $stdout.isatty
 
 opts = OptionParser.new
@@ -51,6 +52,10 @@ end
 
 opts.on('-o', '--overwrite', 'Overwrite existing files') do
   Planter.overwrite = true
+end
+
+opts.on_tail('--base-dir', 'Use an alternate base directory for config and templates') do |opt|
+  Planter.base_dir = opt
 end
 
 opts.on_tail('-d', '--debug', 'Display version number') do

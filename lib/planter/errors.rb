@@ -7,6 +7,7 @@ module Planter
     EXIT_CODES = {
       argument: 12,
       canceled: 1,
+      script: 10,
       config: 127,
       git: 129
     }.deep_freeze
@@ -51,6 +52,19 @@ module Planter
         msg = msg ? "Config: #{msg}" : 'Configuration error'
         Planter.spinner.error('(Error)')
         Planter.notify(msg, :error, exit_code: EXIT_CODES[:config])
+
+        super(msg)
+      end
+    end
+
+    #
+    # Script error
+    #
+    class ScriptError < StandardError
+      def initialize(msg = nil)
+        msg = msg ? "Script: #{msg}" : 'Script error'
+        Planter.spinner.error('(Error)')
+        Planter.notify(msg, :error, exit_code: EXIT_CODES[:script])
 
         super(msg)
       end

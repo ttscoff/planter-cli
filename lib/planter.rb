@@ -24,16 +24,18 @@ require_relative 'planter/prompt'
 require_relative 'planter/string'
 require_relative 'planter/filelist'
 require_relative 'planter/fileentry'
+require_relative 'planter/script'
 require_relative 'planter/plant'
 
 # Main Journal module
 module Planter
   # Base directory for templates
-  BASE_DIR = File.expand_path('~/.config/planter/')
-
   class << self
     include Color
     include Prompt
+
+    ## Base directory for templates
+    attr_accessor :base_dir
 
     ## Debug mode
     attr_accessor :debug
@@ -72,7 +74,9 @@ module Planter
     def notify(string, notification_type = :info, exit_code: nil)
       case notification_type
       when :debug
-        warn "\n{dw}#{string}{x}".x if @debug
+        return false unless @debug
+
+        warn "\n{dw}#{string}{x}".x
       when :error
         warn "{br}#{string}{x}".x
       when :warn
@@ -82,6 +86,8 @@ module Planter
       end
 
       Process.exit exit_code unless exit_code.nil?
+
+      true
     end
 
     ##
@@ -97,6 +103,10 @@ module Planter
                                     error_mark: '{br}✖{x}'.x)
     end
 
+    def base_dir
+      @base_dir ||= ENV['PLANTER_BASE_DIR'] || File.join(Dir.home, '.config', 'planter')
+    end
+
     ##
     ## Build a configuration from template name
     ##
@@ -108,23 +118,28 @@ module Planter
       Planter.spinner.update(title: 'Initializing configuration')
       @template = template
       Planter.variables ||= {}
-      FileUtils.mkdir_p(BASE_DIR) unless File.directory?(BASE_DIR)
-      base_config = File.join(BASE_DIR, 'config.yml')
+      FileUtils.mkdir_p(Planter.base_dir) unless File.directory?(Planter.base_dir)
+      base_config = File.join(Planter.base_dir, 'config.yml')
 
-      unless File.exist?(base_config)
+      if File.exist?(base_config)
+        @config = YAML.load(IO.read(base_config)).symbolize_keys
+      else
         default_base_config = {
           defaults: false,
           git_init: false,
           files: { '_planter.yml' => 'ignore' },
           color: true
         }
-        File.open(base_config, 'w') { |f| f.puts(YAML.dump(default_base_config.stringify_keys)) }
+        begin
+          File.open(base_config, 'w') { |f| f.puts(YAML.dump(default_base_config.stringify_keys)) }
+        rescue Errno::ENOENT
+          Planter.notify("Unable to create #{base_config}", :error)
+        end
+        @config = default_base_config.symbolize_keys
         Planter.notify("New configuration written to #{config}, edit as needed.", :warn)
       end
 
-      @config = YAML.load(IO.read(base_config)).symbolize_keys
-
-      base_dir = File.join(BASE_DIR, 'templates', @template)
+      base_dir = File.join(Planter.base_dir, 'templates', @template)
       unless File.directory?(base_dir)
         notify("Template #{@template} does not exist", :error)
         res = Prompt.yn('Create template directory', default_response: false)
@@ -143,12 +158,35 @@ module Planter
     end
 
     ##
+    ## Execute a shell command and return a Boolean success response
+    ##
+    ## @param      cmd   [String] The shell command
+    ##
+    def pass_fail(cmd)
+      _, status = Open3.capture2("#{cmd} &> /dev/null")
+      status.exitstatus.zero?
+    end
+
+    ##
+    ## Patterns reader, file handling config
+    ##
+    ## @return     [Hash] hash of file patterns
+    ##
+    def patterns
+      @patterns ||= process_patterns
+    end
+
+    private
+
+    ##
     ## Load a template-specific configuration
     ##
     ## @return     [Hash] updated config object
     ##
+    ## @api private
+    ##
     def load_template_config
-      base_dir = File.join(BASE_DIR, 'templates', @template)
+      base_dir = File.join(Planter.base_dir, 'templates', @template)
       config = File.join(base_dir, '_planter.yml')
 
       unless File.exist?(config)
@@ -166,7 +204,7 @@ module Planter
           files: { '*.tmp' => 'ignore' }
         }
         File.open(config, 'w') { |f| f.puts(YAML.dump(default_config.stringify_keys)) }
-        puts "New configuration written to #{config}, please edit."
+        notify("New configuration written to #{config}, please edit.", :warn)
         Process.exit 0
       end
       @config = @config.deep_merge(YAML.load(IO.read(config)).symbolize_keys)
@@ -177,6 +215,8 @@ module Planter
     ##
     ## @param      key   [Symbol] The key in @config to convert
     ##
+    ## @api private
+    ##
     def config_array_to_hash(key)
       files = {}
       @config[key].each do |k, v|
@@ -186,18 +226,11 @@ module Planter
     end
 
     ##
-    ## Patterns reader, file handling config
-    ##
-    ## @return     [Hash] hash of file patterns
-    ##
-    def patterns
-      @patterns ||= process_patterns
-    end
-
-    ##
     ## Process :files in config into regex pattern/operator pairs
     ##
     ## @return     [Hash] { regex => operator } hash
+    ##
+    ## @api private
     ##
     def process_patterns
       patterns = {}
@@ -207,16 +240,6 @@ module Planter
         patterns[pattern] = operator
       end
       patterns
-    end
-
-    ##
-    ## Execute a shell command and return a Boolean success response
-    ##
-    ## @param      cmd   [String] The shell command
-    ##
-    def pass_fail(cmd)
-      _, status = Open3.capture2("#{cmd} &> /dev/null")
-      status.exitstatus.zero?
     end
   end
 end

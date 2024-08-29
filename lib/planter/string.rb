@@ -23,7 +23,7 @@ module Planter
     ## @return     Class name representation of the object.
     ##
     def to_class_name
-      strip.no_ext.split(/[-_ ]/).map(&:capitalize).join('').gsub(/[^a-z0-9]/i, '')
+      strip.no_ext.title_case.gsub(/[^a-z0-9]/i, '').sub(/^\S/, &:upcase)
     end
 
     ##
@@ -66,7 +66,7 @@ module Planter
     ## @return     [String] Snake-cased version of string
     ##
     def snake_case
-      strip.gsub(/\S[A-Z]/) { |pair| pair.split('').join('_') }
+      strip.gsub(/\S(?=[A-Z])/, '\0_')
            .gsub(/[ -]+/, '_')
            .gsub(/[^a-z0-9_]+/i, '')
            .gsub(/_+/, '_')
@@ -82,7 +82,7 @@ module Planter
     ## @return     [String] Snake-cased version of string
     ##
     def camel_case
-      strip.gsub(/[ _]+(\S)/) { Regexp.last_match(1).upcase }
+      strip.gsub(/(?<=[^a-z0-9])(\S)/) { Regexp.last_match(1).upcase }
            .gsub(/[^a-z0-9]+/i, '')
            .sub(/^(\w)/) { Regexp.last_match(1).downcase }
     end
@@ -96,7 +96,7 @@ module Planter
     ## @return     [String] title cased string
     ##
     def title_case
-      gsub(/\b(\w)/) { Regexp.last_match(1).upcase }
+      split(/\b(\w+)/).map(&:capitalize).join('')
     end
 
     ##
@@ -107,7 +107,9 @@ module Planter
     ##
     ## @return     [String] string with variables substituted
     ##
-    def apply_variables(last_only: false)
+    def apply_variables(variables = nil, last_only: false)
+      variables = variables.nil? ? Planter.variables : variables
+
       content = dup.clean_encode
       mod_rx = '(?<mod>
                   (?::
@@ -122,7 +124,7 @@ module Planter
                   )*
                 )'
 
-      Planter.variables.each do |k, v|
+      variables.each do |k, v|
         if last_only
           pattern = "%%#{k.to_var}"
           content = content.reverse.sub(/(?mix)%%(?:(?<mod>.*?):)*(?<key>#{pattern.reverse})/) do
@@ -158,11 +160,13 @@ module Planter
     ##
     ## @return     [String] string with regexes applied
     ##
-    def apply_regexes
+    def apply_regexes(regexes = nil)
       content = dup.clean_encode
-      return self unless Planter.config.key?(:replacements)
+      regexes = regexes.nil? && Planter.config.key?(:replacements) ? Planter.config[:replacements] : regexes
 
-      Planter.config[:replacements].stringify_keys.each do |pattern, replacement|
+      return self unless regexes
+
+      regexes.stringify_keys.each do |pattern, replacement|
         pattern = Regexp.new(pattern) unless pattern.is_a?(Regexp)
         replacement = replacement.gsub(/\$(\d)/, '\\\1').apply_variables
         content.gsub!(pattern, replacement)
@@ -177,8 +181,8 @@ module Planter
     ##
     ## @return     [String] string with variables substituted
     ##
-    def apply_variables!(last_only: false)
-      replace apply_variables(last_only: last_only)
+    def apply_variables!(variables = nil, last_only: false)
+      replace apply_variables(variables, last_only: last_only)
     end
 
     ##
@@ -186,8 +190,8 @@ module Planter
     ##
     ## @return     [String] string with variables substituted
     ##
-    def apply_regexes!
-      replace apply_regexes
+    def apply_regexes!(regexes = nil)
+      replace apply_regexes(regexes)
     end
 
     ##
@@ -334,9 +338,11 @@ module Planter
     ##
     ##
     def coerce(type)
+      type = type.normalize_type
+
       case type
       when :date
-        Chronic.parse(self)
+        Chronic.parse(self).strftime('%Y-%m-%d %H:%M')
       when :integer || :number
         to_i
       when :float

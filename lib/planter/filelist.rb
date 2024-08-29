@@ -10,7 +10,7 @@ module Planter
     ##
     ## @param      path  [String] The base path for template
     ##
-    def initialize(path)
+    def initialize(path = Planter.base_dir)
       @basedir = File.realdirpath(path)
 
       search_path = File.join(@basedir, '**/*')
@@ -30,9 +30,9 @@ module Planter
     end
 
     ##
-    ## Public method for copying files based on their operator
+    ## Public method for copying @files to target based on their operator
     ##
-    ## @return     [Boolean] success
+    ## @return     [Boolean] success or failure
     ##
     def copy
       @files.each do |file|
@@ -89,36 +89,52 @@ module Planter
     end
 
     ##
-    ## Copy tagged merge sections from source to target
+    ## Copy tagged merge sections from source to target. If merge tags do not exist in the file, append the entire file contents to the target.
     ##
     ## @param      entry  [FileEntry] The file entry
+    ##
+    ## @return     [Boolean] success
     ##
     def merge(entry)
       return copy_file(entry) if File.directory?(entry.file)
 
+      # Get the file type
       type = `file #{entry.file}`
       case type.sub(/^#{Regexp.escape(entry.file)}: /, '').split(/:/).first
       when /Apple binary property list/
+        # Convert to XML1 format
         `plutil -convert xml1 #{entry.file}`
         `plutil -convert xml1 #{entry.target}`
         content = IO.read(entry.file)
       when /data/
+        # Simply copy the file
         return copy_file(entry)
       else
+        # Copy the file if it is binary
         return copy_file(entry) if File.binary?(entry.file)
 
+        # Read the file content
         content = IO.read(entry.file)
       end
 
+      # Get the merge sections from the file, delimited by merge and /merge
       merges = content.scan(%r{(?<=\A|\n).{,4}merge *\n(.*?)\n.{,4}/merge}m)
                       &.map { |m| m[0].strip.apply_variables.apply_regexes }
+      # If no merge sections are found, use the entire file
       merges = [content] if !merges || merges.empty?
-      new_content = IO.read(entry.target)
-      merges.delete_if { |m| new_content =~ /#{Regexp.escape(m)}/ }
+
+      # Get the existing content of the target file
+      target_content = IO.read(entry.target)
+
+      # Remove any merges that already exist in the target file
+      merges.delete_if { |m| target_content =~ /#{Regexp.escape(m)}/ }
+
+      # If there are any merge sections left, merge them with the target file
       if merges.count.positive?
-        File.open(entry.target, 'w') { |f| f.puts "#{new_content.chomp}\n\n#{merges.join("\n\n")}" }
+        File.open(entry.target, 'w') { |f| f.puts "#{target_content.chomp}\n\n#{merges.join("\n\n")}" }
         Planter.notify("Merged #{entry.file} => #{entry.target} (#{merges.count} merges)", :debug)
       else
+        # If there are no merge sections left, copy the file instead
         copy_file(entry)
       end
     end
@@ -129,14 +145,25 @@ module Planter
     ## @param      file       [FileEntry] The file entry
     ## @param      overwrite  [Boolean] Force overwrite
     ##
+    ## @return     [Boolean] success
+    ##
     def copy_file(file, overwrite: false)
+      # Check if the target file already exists
+      # If it does and overwrite is true, or Planter.overwrite is true,
+      # or if the file doesn't exist, then copy the file
       if !File.exist?(file.target) || overwrite || Planter.overwrite
+        # Make sure the target directory exists
         FileUtils.mkdir_p(File.dirname(file.target))
+        # Copy the file if it isn't a directory
         FileUtils.cp(file.file, file.target) unless File.directory?(file.file)
+        # Log a message to the console
         Planter.notify("Copied #{file.file} => #{file.target}", :debug)
+        # Return true to indicate success
         true
       else
+        # Log a message to the console
         Planter.notify("Skipped #{file.file} => #{file.target}", :debug)
+        # Return false to indicate that the copy was skipped
         false
       end
     end

@@ -13,11 +13,13 @@ module Planter
     ## @param      script        [String] The script name
     ##
     def initialize(template_dir, output_dir, script)
-      found = find_script(template_dir, output_dir, script)
-      Planter.notify("Script #{script} not found", :error, exit_code: 10) unless found
+      found = find_script(template_dir, script)
+      raise ScriptError.new("Script #{script} not found") unless found
+
       @script = found
 
-      Planter.notify("Directory #{output_dir} not found", :error, exit_code: 10) unless File.directory?(output_dir)
+      raise ScriptError.new("Output directory #{output_dir} not found") unless File.directory?(output_dir)
+
       @template_directory = template_dir
       @directory = output_dir
     end
@@ -31,13 +33,15 @@ module Planter
     ## @return     [String] Path to script
     ##
     def find_script(template_dir, script)
-      parts = Shellwords.split(script).first
-      return script if File.exist?(parts[0])
+      parts = Shellwords.split(script)
+      script_name = parts[0]
+      args = parts[1..-1].join(' ')
+      return script if File.exist?(script_name)
 
-      if File.exist?(File.join(template_dir, '_scripts', parts[0]))
-        return "#{File.join(template_dir, '_scripts', parts[0])} #{parts[1..-1]}"
-      elsif File.exist?(File.join(BASE_DIR, 'scripts', parts[0]))
-        return "#{File.join(BASE_DIR, 'scripts', parts[0])} #{parts[1..-1]}"
+      if File.exist?(File.join(template_dir, '_scripts', script_name))
+        return "#{File.join(template_dir, '_scripts', script_name)} #{args}".strip
+      elsif File.exist?(File.join(Planter.base_dir, 'scripts', script_name))
+        return "#{File.join(Planter.base_dir, 'scripts', script_name)} #{args}".strip
       end
 
       nil

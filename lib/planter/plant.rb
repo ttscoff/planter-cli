@@ -13,7 +13,7 @@ module Planter
       Planter.variables = variables if variables.is_a?(Hash)
       Planter.config = template if template
 
-      @basedir = File.join(Planter::BASE_DIR, 'templates', Planter.template)
+      @basedir = File.join(Planter.base_dir, 'templates', Planter.template)
       @target = Planter.target || Dir.pwd
 
       @git = Planter.config[:git_init] || false

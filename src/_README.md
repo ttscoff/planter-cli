@@ -72,6 +72,14 @@ Merged content
 // /merge
 ```
 
+Or
+
+```
+# merge
+Merged content
+# /merge
+```
+
 By default files that already exist in the destination directory are not overwritten, and merging allows you to add missing parts to a Rakefile or Makefile, for example.
 
 If `ask` is specified, a memu will be provided on the command line asking how to handle a file. If the file doesn't already exist, you will be asked only whether to copy the file or not. If it does exist, `overwrite` and `merge` options will be added.

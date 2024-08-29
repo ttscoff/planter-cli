@@ -81,7 +81,7 @@ module Planter
       [:default, '0;39']
     ].map(&:freeze).freeze
 
-    # Array of attribute keys only
+    # @return [Array<String>] all available color names
     ATTRIBUTE_NAMES = ATTRIBUTES.transpose.first
 
     # Returns true if Color supports the +feature+.

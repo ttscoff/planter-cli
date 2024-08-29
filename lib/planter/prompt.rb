@@ -34,7 +34,7 @@ module Planter
       def ask
         return nil if @prompt.nil?
 
-        return @value.to_s.apply_variables.apply_regexes.coerce(@type) if @value
+        return @value.to_s.apply_variables.apply_regexes.coerce(@type) if @value && @type != :date
 
         res = case @type
               when :integer
@@ -249,7 +249,7 @@ module Planter
       return default unless $stdout.isatty
 
       # If --defaults is set, return default
-      return default if Planter.accept_defaults
+      return default if Planter.accept_defaults || ENV['PLANTER_DEBUG']
 
       # clear the buffer
       if ARGV&.length
@@ -315,6 +315,9 @@ module Planter
                 else
                   default_response
                 end
+
+      # if PLANTER_DEBUG is set, answer default
+      return true if ENV['PLANTER_DEBUG']
 
       # if this isn't an interactive shell, answer default
       return default unless $stdout.isatty

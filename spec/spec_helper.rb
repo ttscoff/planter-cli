@@ -1,4 +1,6 @@
 require 'simplecov'
+require 'cli-test'
+require 'fileutils'
 
 SimpleCov.start
 
@@ -13,8 +15,12 @@ require 'planter'
 
 RSpec.configure do |c|
   c.expect_with(:rspec) { |e| e.syntax = :expect }
-  c.before(:each) do
+  c.before do
+    ENV["RUBYOPT"] = '-W1'
+    ENV['PLANTER_DEBUG'] = 'true'
+    Planter.base_dir = File.expand_path('spec')
     allow(FileUtils).to receive(:remove_entry_secure).with(anything)
+    allow(FileUtils).to receive(:mkdir_p).with(anything)
   end
-  c.add_formatter 'Fuubar'
+  c.add_formatter 'd'
 end
