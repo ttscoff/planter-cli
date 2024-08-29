@@ -133,7 +133,7 @@ module Planter
       ## @return     [String] the single-line response
       ##
       def read_line(prompt: nil)
-        prompt ||= read_lines @prompt
+        prompt ||= @prompt
         default = @default ? " {bw}[#{@default}]" : ''
         Planter.notify("{by}#{prompt}#{default}")
 

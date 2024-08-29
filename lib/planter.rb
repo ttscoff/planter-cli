@@ -35,7 +35,7 @@ module Planter
     include Prompt
 
     ## Base directory for templates
-    attr_accessor :base_dir
+    attr_writer :base_dir
 
     ## Debug mode
     attr_accessor :debug

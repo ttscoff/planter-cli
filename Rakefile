@@ -107,10 +107,10 @@ task :dockertest, :version, :login, :attempt do |_, args|
   dir_args = dirs.map { |s, d| " -v '#{s}:#{d}'" }.join(' ')
   exec "docker run #{dir_args} -it #{img} /bin/bash -l" if args[:login]
 
-  spinner = TTY::Spinner.new("[:spinner] Running tests (#{args[:version]})...", hide_cursor: true)
+  spinner = TTY::Spinner.new("[:spinner] Running tests (#{version})...", hide_cursor: true)
 
   spinner.auto_spin
-  res = `docker run --rm #{dir_args} -it #{img}`
+  `docker run --rm #{dir_args} -it #{img}`
   # raise DockerError.new('Error running docker image') unless $?.success?
 
   # commit = puts `bash -c "docker commit $(docker ps -a|grep #{img}|awk '{print $1}'|head -n 1) #{img}"`.strip

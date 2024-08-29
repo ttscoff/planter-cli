@@ -177,15 +177,7 @@ module Planter
       files = Dir.glob('**/*', File::FNM_DOTMATCH).reject { |f| File.directory?(f) || f =~ /^(\.git|config\.yml)/ }
 
       files.each do |file|
-        type = `file #{file}`
-        case type.sub(/^#{Regexp.escape(file)}: /, '').split(/:/).first
-        when /Apple binary property list/
-          `plutil -convert xml1 #{file}`
-        when /data/
-          next
-        else
-          next if File.binary?(file)
-        end
+        next if File.binary?(file)
 
         content = IO.read(file)
         new_content = content.apply_variables.apply_regexes
