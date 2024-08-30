@@ -7,6 +7,7 @@ describe Planter::Script do
   let(:template_dir) { File.expand_path('spec/test') }
   let(:output_dir) { File.expand_path('spec/test_out') }
   let(:script_name) { 'test.sh' }
+  let(:script_name_fail) { 'test_fail.sh' }
   let(:script_path) { File.join(template_dir, '_scripts', script_name) }
   let(:base_script_path) { File.join(Planter.base_dir, 'scripts', script_name) }
 
@@ -66,18 +67,14 @@ describe Planter::Script do
   describe '#run' do
     it 'executes the script successfully' do
       script = Planter::Script.new(template_dir, output_dir, script_name)
-      allow(script).to receive(:`).and_return(true)
-      allow($?).to receive(:success?).and_return(true)
       expect(script.run).to be true
     end
 
     it 'raises an error if script execution fails' do
-      script = Planter::Script.new(template_dir, output_dir, script_name)
-      allow(script).to receive(:`).and_return(false)
-      allow($?).to receive(:success?).and_return(false)
+      script = Planter::Script.new(template_dir, output_dir, script_name_fail)
       expect do
         script.run
-      end.to raise_error(SystemExit)
+      end.to raise_error(ScriptError)
     end
   end
 end

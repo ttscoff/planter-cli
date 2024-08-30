@@ -17,11 +17,18 @@ module Planter
       raise ScriptError.new("Script #{script} not found") unless found
 
       @script = found
+      make_executable
 
       raise ScriptError.new("Output directory #{output_dir} not found") unless File.directory?(output_dir)
 
       @template_directory = template_dir
       @directory = output_dir
+    end
+
+    ## Make a script executable if it's not already
+    def make_executable
+      File.chmod(0o755, @script) unless File.executable?(@script)
+      File.executable?(@script)
     end
 
     ##
@@ -53,9 +60,10 @@ module Planter
     ## @return     [Boolean] true if success?
     ##
     def run
-      `#{@script} "#{@template_directory}" "#{@directory}"`
-
-      Planter.notify("Error running #{File.basename(@script)}", :error, exit_code: 128) unless $?.success?
+      stdout, stderr, status = Open3.capture3(@script, @template_directory, @directory)
+      Planter.notify("STDOUT:\n#{stdout}", :debug) unless stdout.empty?
+      Planter.notify("STDERR:\n#{stderr}", :debug) unless stderr.empty?
+      raise ScriptError.new("Error running #{@script}") unless status.success?
 
       true
     end

@@ -19,7 +19,7 @@ If [Gum](https://github.com/charmbracelet/gum) is available it will be used for 
 
 ## Configuration
 
-Planter's base configuration is in `~/.config/planter/config.yml`. This file can contain any of the keys used in templates (see below) and will serve as a base configuration for all templates. Any key defined in this file will be overridden if it exists in a template.
+Planter's base configuration is in `~/.config/planter/planter.yml`. This file can contain any of the keys used in templates (see below) and will serve as a base configuration for all templates. Any key defined in this file will be overridden if it exists in a template.
 
 ### Scripts.
 

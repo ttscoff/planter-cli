@@ -29,6 +29,7 @@ module Planter
 
       bytes = File.open(name, 'rb') { |io| io.read(1024) }
       return true if bytes.nil? || bytes.empty?
+
       bytes.each_byte do |bt|
         case bt
         when 0...32
@@ -59,7 +60,7 @@ module Planter
       if TTY::Which.exist?('file')
         file_type, status = Open3.capture2e('file', name)
         file_type = file_type.split(':')[1..-1].join(':').strip
-        if file_type =~ /Apple binary property list/
+        if file_type =~ /Apple binary property list/ && TTY::Which.exist?('plutil')
           `plutil -convert xml1 "#{name}"`
           File.binary?(name)
         else

@@ -119,7 +119,7 @@ module Planter
       @template = template
       Planter.variables ||= {}
       FileUtils.mkdir_p(Planter.base_dir) unless File.directory?(Planter.base_dir)
-      base_config = File.join(Planter.base_dir, 'config.yml')
+      base_config = File.join(Planter.base_dir, 'planter.yml')
 
       if File.exist?(base_config)
         @config = YAML.load(IO.read(base_config)).symbolize_keys
