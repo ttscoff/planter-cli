@@ -1,3 +1,26 @@
+### 0.0.4
+
+2024-08-30 11:15
+
+#### CHANGED
+
+- Use planter.yml as default config (instead of config.yml) for consistency
+
+#### NEW
+
+- Template placeholders can define default values that will be implemented if the variable value matches the default value for the variable (or the %%variable%% is undefined)
+
+#### IMPROVED
+
+- More tests
+- Better detection of binary files
+- Automatically make scripts executable
+- Better tests for script execution
+
+#### FIXED
+
+- Test if plutil exists before executing
+
 ### 0.0.3
 
 2024-08-28 09:46
