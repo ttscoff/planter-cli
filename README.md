@@ -14,7 +14,7 @@ If [Gum](https://github.com/charmbracelet/gum) is available it will be used for 
 
 ## Configuration
 
-Planter's base configuration is in `~/.config/planter/config.yml`. This file can contain any of the keys used in templates (see below) and will serve as a base configuration for all templates. Any key defined in this file will be overridden if it exists in a template.
+Planter's base configuration is in `~/.config/planter/planter.yml`. This file can contain any of the keys used in templates (see below) and will serve as a base configuration for all templates. Any key defined in this file will be overridden if it exists in a template.
 
 ### Scripts.
 
@@ -49,6 +49,10 @@ replacements: # Dictionary of pattern/replacments for regex substitution, see [R
 repo: # If a repository URL is provided, it will be pulled and duplicated instead of copying a file structure
 ```
 
+#### Default values in template strings
+
+In a template you can add a default value for a placholder by adding `%default value` to it. For example, `%%project%Default Project%%` will set the placeholder to `Default Project` if the variable value matches the default value in the configuration. This allows you to accept the default on the command line but have a different value inserted in the template. To use another variable in its place, use `$KEY` in the placeholder, e.g. `%%project%$title%%` will replace the `project` key with the value of `title` if the default is selected. Modifiers can be used on either side of the `%`, e.g. `%%project%$title:snake%%`.
+
 ### File-specific handling
 
 A `files` dictionary can specify how to handle specific files. Options are `copy`, `overwrite`, `merge`, or `ask`. The key for each entry is a filename or glob that matches the source filename (accounting for template variables if applicable):
@@ -65,6 +69,14 @@ If `merge` is specified, then the source file is scanned for merge comments and 
 // merge
 Merged content
 // /merge
+```
+
+Or
+
+```
+# merge
+Merged content
+# /merge
 ```
 
 By default files that already exist in the destination directory are not overwritten, and merging allows you to add missing parts to a Rakefile or Makefile, for example.
