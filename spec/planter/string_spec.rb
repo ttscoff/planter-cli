@@ -73,44 +73,44 @@ describe ::String do
     it 'replaces placeholders with variable values' do
       template = 'Hello, %%name%%!'
       variables = { name: 'World' }
-      expect(template.apply_variables(variables)).to eq 'Hello, World!'
+      expect(template.apply_variables(variables: variables)).to eq 'Hello, World!'
     end
 
     it 'handles multiple variables' do
       template = 'Hello, %%first_name%% %%last_name%%!'
       variables = { first_name: 'John', last_name: 'Doe' }
-      expect(template.apply_variables(variables)).to eq 'Hello, John Doe!'
+      expect(template.apply_variables(variables: variables)).to eq 'Hello, John Doe!'
     end
 
     it 'handles missing variables gracefully' do
       template = 'Hello, %%name%%!'
       variables = {}
-      expect(template.apply_variables(variables)).to eq 'Hello, %%name%%!'
+      expect(template.apply_variables(variables: variables)).to eq 'Hello, %%name%%!'
     end
 
     it 'handles variables with special characters' do
       template = 'Hello, %%name%%!'
       variables = { name: 'John #Doe' }
-      expect(template.apply_variables(variables)).to eq 'Hello, John #Doe!'
+      expect(template.apply_variables(variables: variables)).to eq 'Hello, John #Doe!'
     end
 
     it 'handles modifiers' do
       template = 'Hello, %%title:upper%% %%name:title%%!'
       variables = { title: 'Mr.', name: 'john do' }
-      expect(template.apply_variables(variables)).to eq 'Hello, MR. John Do!'
+      expect(template.apply_variables(variables: variables)).to eq 'Hello, MR. John Do!'
     end
 
     it 'operates in place' do
       template = 'Hello, %%title:upper%% %%name:title%%!'
       variables = { title: 'Mr.', name: 'john do' }
-      template.apply_variables!(variables)
+      template.apply_variables!(variables: variables)
       expect(template).to eq 'Hello, MR. John Do!'
     end
 
     it 'handles last_only' do
       template = 'Hello, %%title%% %%title:upper%%!'
       variables = { title: 'project title' }
-      expect(template.apply_variables(variables, last_only: true)).to eq 'Hello, %%title%% PROJECT TITLE!'
+      expect(template.apply_variables(variables: variables, last_only: true)).to eq 'Hello, %%title%% PROJECT TITLE!'
     end
   end
 

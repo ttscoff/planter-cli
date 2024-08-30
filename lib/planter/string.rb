@@ -99,19 +99,8 @@ module Planter
       split(/\b(\w+)/).map(&:capitalize).join('')
     end
 
-    ##
-    ## Apply key/value substitutions to a string. Variables are represented as
-    ## %%key%%, and the hash passed to the function is { key: value }
-    ##
-    ## @param      last_only  [Boolean] Only replace the last instance of %%key%%
-    ##
-    ## @return     [String] string with variables substituted
-    ##
-    def apply_variables(variables = nil, last_only: false)
-      variables = variables.nil? ? Planter.variables : variables
-
-      content = dup.clean_encode
-      mod_rx = '(?<mod>
+    # @return [String] Regular expression for matching variable modifiers
+    MOD_RX = '(?<mod>
                   (?::
                     (
                       l(?:ow(?:er)?)?)?|
@@ -123,11 +112,75 @@ module Planter
                     )?
                   )*
                 )'
+    # @return [String] regular expression string for default values
+    DEFAULT_RX = '(?:%(?<default>[^%]+))?'
+
+    #
+    # Apply default values to a string
+    #
+    # Default values are applied to variables that are not present in the variables hash,
+    # or whose value matches the default value
+    #
+    # @param variables [Hash] Hash of variable values
+    #
+    # @return [String] string with default values applied
+    #
+    def apply_defaults(variables)
+      # Perform an in-place substitution on the content string for default values
+      gsub(/%%(?<varname>[^%:]+)(?<mods>(?::[^%]+)*)%(?<default>[^%]+)%%/) do
+        # Capture the last match object
+        m = Regexp.last_match
+
+        # Check if the variable is not present in the variables hash
+        if !variables.key?(m['varname'].to_var)
+          # If the variable is not present, use the default value from the match
+          m['default'].apply_var_names
+        else
+          # Retrieve the default value for the variable from the configuration
+          vars = Planter.config[:variables].filter { |v| v[:key] == m['varname'] }
+          default = vars.first[:default] if vars.count.positive?
+          if default.nil?
+            m[0]
+          elsif variables[m['varname'].to_var] == default
+            # If the variable's value matches the default value, use the default value from the match
+            m['default'].apply_var_names
+          else
+            m[0]
+          end
+        end
+      end
+    end
+
+    #
+    # Destructive version of #apply_defaults
+    #
+    # @param variables [Hash] hash of variables to apply
+    #
+    # @return [String] string with defaults applied
+    #
+    def apply_defaults!(variables)
+      replace apply_defaults(variables)
+    end
+
+    ##
+    ## Apply key/value substitutions to a string. Variables are represented as
+    ## %%key%%, and the hash passed to the function is { key: value }
+    ##
+    ## @param      last_only  [Boolean] Only replace the last instance of %%key%%
+    ##
+    ## @return     [String] string with variables substituted
+    ##
+    def apply_variables(variables: nil, last_only: false)
+      variables = variables.nil? ? Planter.variables : variables
+
+      content = dup.clean_encode
+
+      content = content.apply_defaults(variables)
 
       variables.each do |k, v|
         if last_only
           pattern = "%%#{k.to_var}"
-          content = content.reverse.sub(/(?mix)%%(?:(?<mod>.*?):)*(?<key>#{pattern.reverse})/) do
+          content = content.reverse.sub(/(?mix)%%(?:(?<mod>.*?):)*(?<key>#{pattern.reverse})/i) do
             m = Regexp.last_match
             if m['mod']
               m['mod'].reverse.split(/:/).each do |mod|
@@ -138,20 +191,53 @@ module Planter
             v.reverse
           end.reverse
         else
-          rx = /(?mix)%%(?<key>#{k.to_var})#{mod_rx}%%/
+          rx = /(?mix)%%(?<key>#{k.to_var})#{MOD_RX}#{DEFAULT_RX}%%/
 
           content.gsub!(rx) do
             m = Regexp.last_match
 
-            mods = m['mod']&.split(/:/)
-            mods&.each do |mod|
-              v = v.apply_mod(mod.normalize_mod)
+            if m['mod']
+              mods = m['mod']&.split(/:/)
+              mods&.each do |mod|
+                v = v.apply_mod(mod.normalize_mod)
+              end
             end
             v
           end
         end
       end
 
+      content
+    end
+
+    #
+    # Handle $varname and ${varname} variable substitutions
+    #
+    # @return [String] String with variables substituted
+    #
+    def apply_var_names
+      sub(/\$\{?(?<varname>\w+)(?<mods>(?::\w+)+)?\}?/) do
+        m = Regexp.last_match
+        if Planter.variables.key?(m['varname'].to_var)
+          Planter.variables[m['varname'].to_var].apply_mods(m['mods'])
+        else
+          m
+        end
+      end
+    end
+
+    #
+    # Apply modifiers to a string
+    #
+    # @param mods [String] Colon separated list of modifiers to apply
+    #
+    # @return [String] string with modifiers applied
+    #
+    def apply_mods(mods)
+      content = dup
+      mods.split(/:/).each do |mod|
+        content.apply_mod!(mod.normalize_mod)
+      end
       content
     end
 
@@ -181,8 +267,8 @@ module Planter
     ##
     ## @return     [String] string with variables substituted
     ##
-    def apply_variables!(variables = nil, last_only: false)
-      replace apply_variables(variables, last_only: last_only)
+    def apply_variables!(variables: nil, last_only: false)
+      replace apply_variables(variables: variables, last_only: last_only)
     end
 
     ##
@@ -226,6 +312,8 @@ module Planter
     ##
     ## @param      mod   [Symbol] The modifier to apply
     ##
+    ## @return     [String] modified string
+    ##
     def apply_mod(mod)
       case mod
       when :slug
@@ -243,6 +331,17 @@ module Planter
       else
         self
       end
+    end
+
+    #
+    # Destructive version of #apply_mod
+    #
+    # @param mod [String] modified string
+    #
+    # @return [<Type>] <description>
+    #
+    def apply_mod!(mod)
+      replace apply_mod(mod)
     end
 
     ##

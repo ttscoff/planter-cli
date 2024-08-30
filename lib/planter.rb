@@ -136,7 +136,7 @@ module Planter
           Planter.notify("Unable to create #{base_config}", :error)
         end
         @config = default_base_config.symbolize_keys
-        Planter.notify("New configuration written to #{config}, edit as needed.", :warn)
+        Planter.notify("New configuration written to #{base_config}, edit as needed.", :warn)
       end
 
       base_dir = File.join(Planter.base_dir, 'templates', @template)
