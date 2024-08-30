@@ -76,3 +76,6 @@ Style/ModuleFunction:
 
 Style/RaiseArgs:
   EnforcedStyle: compact
+
+Style/SlicingWithRange:
+  Enabled: false

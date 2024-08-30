@@ -4,7 +4,7 @@ require 'spec_helper'
 require 'fileutils'
 
 describe Planter::Script do
-  let(:template_dir) { File.expand_path('spec/test') }
+  let(:template_dir) { File.expand_path('spec/templates/test') }
   let(:output_dir) { File.expand_path('spec/test_out') }
   let(:script_name) { 'test.sh' }
   let(:script_name_fail) { 'test_fail.sh' }

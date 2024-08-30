@@ -89,7 +89,8 @@ module Planter
     end
 
     ##
-    ## Copy tagged merge sections from source to target. If merge tags do not exist in the file, append the entire file contents to the target.
+    ## Copy tagged merge sections from source to target. If merge tags do not exist in the file,
+    ## append the entire file contents to the target.
     ##
     ## @param      entry  [FileEntry] The file entry
     ##

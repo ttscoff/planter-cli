@@ -105,6 +105,7 @@ elsif ARGV.count.zero?
 end
 
 ARGV.each do |template|
+  Planter.spinner.update(title: 'Initializing configuration')
   Planter.config = template
   app = Planter::Plant.new
   app.plant

@@ -115,7 +115,6 @@ module Planter
     ## @return     [Hash] Configuration object
     ##
     def config=(template)
-      Planter.spinner.update(title: 'Initializing configuration')
       @template = template
       Planter.variables ||= {}
       FileUtils.mkdir_p(Planter.base_dir) unless File.directory?(Planter.base_dir)
@@ -203,6 +202,7 @@ module Planter
           git_init: false,
           files: { '*.tmp' => 'ignore' }
         }
+        FileUtils.mkdir_p(base_dir)
         File.open(config, 'w') { |f| f.puts(YAML.dump(default_config.stringify_keys)) }
         notify("New configuration written to #{config}, please edit.", :warn)
         Process.exit 0

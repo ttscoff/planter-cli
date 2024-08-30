@@ -1,0 +1,12 @@
+---
+variables:
+- key: var_key
+  prompt: CLI Prompt
+  type: "[string, float, integer, number, date]"
+  value: "(optional, for date type can be today, time, now, etc., empty to prompt)"
+  default: "(optional default value, leave empty or remove key for no default)"
+  min: "(optional, for number type set a minimum value)"
+  max: "(optional, for number type set a maximum value)"
+git_init: false
+files:
+  "*.tmp": ignore
