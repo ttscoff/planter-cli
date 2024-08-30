@@ -23,10 +23,6 @@ Style/MutableConstant:
 Style/SpecialGlobalVars:
   Enabled: false
 
-Security/YAMLLoad:
-  Exclude:
-    - 'lib/**/*.rb'
-
 Style/StringLiterals:
   Enabled: true
   EnforcedStyle: single_quotes
@@ -67,8 +63,7 @@ Metrics/ModuleLength:
   Max: 174
 
 Security/YAMLLoad:
-  Exclude:
-    - '**/*.rb'
+  Enabled: false
 
 Style/ModuleFunction:
   Exclude:
