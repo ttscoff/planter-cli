@@ -1,3 +1,20 @@
+### 3.0.0-alpha
+
+2024-08-31 14:18
+
+#### NEW
+
+- Initial release
+- Preserve Finder tags when planting (config option `preserve_tags: true`)
+
+#### IMPROVED
+
+- More tests
+
+#### FIXED
+
+- Code refactoring
+
 ### 0.0.3
 
 2024-08-28 09:46
