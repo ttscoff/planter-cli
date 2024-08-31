@@ -57,6 +57,15 @@ module Planter
                  v
                end
       end
+
+      #
+      # Destructive version of #symbolize_keys
+      #
+      # @return [Array] Array with symbolized keys
+      #
+      def symbolize_keys!
+        replace symbolize_keys
+      end
     end
   end
 end

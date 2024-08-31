@@ -33,6 +33,15 @@ module Planter
       end
     end
 
+    #
+    # Destructive version of #symbolize_keys
+    #
+    # @return [Hash] Hash with symbolized keys
+    #
+    def symbolize_keys!
+      replace symbolize_keys
+    end
+
     ##
     ## Deep merge a hash
     ##

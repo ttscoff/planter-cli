@@ -43,3 +43,4 @@ Gemfile.lock
 .rvmrc
 /test
 .history
+spec/test/
