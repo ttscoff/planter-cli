@@ -61,6 +61,14 @@ module Planter
       else
         copy_file(entry)
       end
+
+      apply_tags(entry)
+    end
+
+    def apply_tags(entry)
+      return unless Planter.config[:preserve_tags]
+
+      Tag.copy(entry.file, entry.target) if File.exist?(entry.target)
     end
 
     ##

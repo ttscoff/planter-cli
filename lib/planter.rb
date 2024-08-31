@@ -6,6 +6,7 @@ require 'json'
 require 'yaml'
 require 'fileutils'
 require 'open3'
+require 'plist'
 
 require 'chronic'
 require 'tty-reader'
@@ -18,6 +19,7 @@ require_relative 'planter/hash'
 require_relative 'planter/array'
 require_relative 'planter/symbol'
 require_relative 'planter/file'
+require_relative 'planter/tag'
 require_relative 'planter/color'
 require_relative 'planter/errors'
 require_relative 'planter/prompt'
@@ -127,7 +129,8 @@ module Planter
           defaults: false,
           git_init: false,
           files: { '_planter.yml' => 'ignore' },
-          color: true
+          color: true,
+          preserve_tags: true
         }
         begin
           File.open(base_config, 'w') { |f| f.puts(YAML.dump(default_base_config.stringify_keys)) }

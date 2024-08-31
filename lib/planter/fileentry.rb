@@ -7,7 +7,7 @@ module Planter
     attr_accessor :operation
 
     # File path and target path
-    attr_reader :file, :target
+    attr_reader :file, :target, :tags
 
     ##
     ## Initialize a FileEntry object
@@ -19,9 +19,13 @@ module Planter
     ## @return [FileEntry] a Hash of parameters
     ##
     def initialize(file, target, operation)
+      return nil unless File.exist?(file)
+
       @file = file
       @target = target
       @operation = operation
+
+      @tags = Tag.get(file)
 
       super()
     end

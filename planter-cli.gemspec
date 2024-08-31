@@ -41,6 +41,7 @@ Gem::Specification.new do |spec|
   spec.add_development_dependency 'yard', '~> 0.9.5'
 
   spec.add_runtime_dependency 'chronic', '~> 0.10'
+  spec.add_runtime_dependency 'plist', '~> 3.7.1'
   spec.add_runtime_dependency 'tty-reader', '~> 0.9'
   spec.add_runtime_dependency 'tty-screen', '~> 0.8'
   spec.add_runtime_dependency 'tty-spinner', '~> 0.9'

@@ -41,7 +41,7 @@ Metrics/BlockLength:
   Max: 45
   Exclude:
     - Rakefile
-    - bin/howzit
+    - bin/untitled
     - lib/*.rb
 
 Metrics/ClassLength:

@@ -21,6 +21,17 @@ If [Gum](https://github.com/charmbracelet/gum) is available it will be used for 
 
 Planter's base configuration is in `~/.config/planter/planter.yml`. This file can contain any of the keys used in templates (see below) and will serve as a base configuration for all templates. Any key defined in this file will be overridden if it exists in a template.
 
+Example config (written on first run):
+
+```yaml
+files:
+  .DS_Store: ignore
+  "*.tmp": ignore
+  "*.bak": ignore
+git_init: false
+preserve_tags: true
+```
+
 ### Scripts.
 
 Scripts for execution after planting can be stored in `~/.config/planter/scripts` and referenced by filename only. Alternatively, scripts may be stored within a template in a `_scritps` subfolder.
@@ -99,6 +110,10 @@ replacements:
 ```
 
 Replacements are performed on both file/directory names and file contents.
+
+### Finder Tags
+
+If `preserve_tags` is set to `true` in the config (either base or template), then existing Finder tags on the file or folder will be copied to the new file when a template is planted.
 
 ## Usage
 

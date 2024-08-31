@@ -1,11 +1,11 @@
 FROM ruby:2.6
 # RUN curl -sS https://dl.yarnpkg.com/debian/pubkey.gpg | apt-key add -
-RUN mkdir /howzit
-WORKDIR /howzit
-# COPY ./ /howzit/
+RUN mkdir /planter
+WORKDIR /planter
+# COPY ./ /planter/
 RUN gem install bundler:2.2.29
-RUN apt-get update -y
-RUN apt-get install -y less vim
+# RUN apt-get update -y
+# RUN apt-get install -y less vim
 COPY ./docker/inputrc /root/.inputrc
 COPY ./docker/bash_profile /root/.bash_profile
 RUN mkdir -p /root/.config/planter/templates/test
