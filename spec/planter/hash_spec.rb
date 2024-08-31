@@ -80,4 +80,31 @@ describe ::Hash do
       expect(hash[:b]).not_to be_frozen
     end
   end
+
+  describe '#stringify_keys!' do
+    let(:hash) { { key1: 'value1', key2: 'value2', key3: { key4: 'value4' } } }
+
+    it 'converts symbol keys to strings destructively' do
+      hash.stringify_keys!
+      expect(hash).to eq({ 'key1' => 'value1', 'key2' => 'value2', 'key3' => { 'key4' => 'value4' } })
+    end
+
+    it 'does not modify the original hash if already string keys' do
+      string_hash = { 'key1' => 'value1', 'key2' => 'value2', 'key3' => { 'key4' => 'value4' } }
+      string_hash.stringify_keys!
+      expect(string_hash).to eq({ 'key1' => 'value1', 'key2' => 'value2', 'key3' => { 'key4' => 'value4' } })
+    end
+
+    it 'handles nested hashes' do
+      nested_hash = { key1: { key2: { key3: 'value3' } } }
+      nested_hash.stringify_keys!
+      expect(nested_hash).to eq({ 'key1' => { 'key2' => { 'key3' => 'value3' } } })
+    end
+
+    it 'handles empty hashes' do
+      empty_hash = {}
+      empty_hash.stringify_keys!
+      expect(empty_hash).to eq({})
+    end
+  end
 end

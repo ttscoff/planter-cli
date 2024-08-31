@@ -54,7 +54,7 @@ opts.on('-o', '--overwrite', 'Overwrite existing files') do
   Planter.overwrite = true
 end
 
-opts.on_tail('--base-dir', 'Use an alternate base directory for config and templates') do |opt|
+opts.on_tail('--base-dir DIRECTORY', 'Use an alternate base directory for config and templates') do |opt|
   Planter.base_dir = opt
 end
 

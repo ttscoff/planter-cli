@@ -68,6 +68,8 @@ module Planter
     ## @example Pass a GitHub-style repo path and get full url
     ##   expand_repo("ttscoff/planter-cli") #=> https://github.com/ttscoff/planter-cli.git
     ##
+    ## @param      repo  [String] The repo
+    ##
     ## @return     { description_of_the_return_value }
     ##
     def expand_repo(repo)

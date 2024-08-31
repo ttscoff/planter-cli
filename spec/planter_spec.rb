@@ -29,6 +29,21 @@ RSpec.describe "Planter" do
     end
   end
 
+  describe '.spinner' do
+    it 'initializes a new TTY::Spinner object if not already initialized' do
+      Planter.instance_variable_set(:@spinner, nil) # Ensure spinner is not initialized
+      spinner = Planter.spinner
+      expect(spinner).to be_a(TTY::Spinner)
+    end
+
+    it 'returns the existing TTY::Spinner object if already initialized' do
+      existing_spinner = TTY::Spinner.new
+      Planter.instance_variable_set(:@spinner, existing_spinner)
+      spinner = Planter.spinner
+      expect(spinner).to eq(existing_spinner)
+    end
+  end
+
   describe '.config=' do
     #   it 'sets the config' do
     #     path = File.expand_path('spec/noop')

@@ -1,6 +1,5 @@
 # frozen_string_literal: true
 
-# Hash helpers
 module Planter
   ## Hash helpers
   class ::Hash
@@ -18,6 +17,14 @@ module Planter
       end
     end
 
+    ##  Destructive version of #stringify_keys
+    ##
+    ##  @return [Hash] Hash with stringified keys
+    ##
+    def stringify_keys!
+      replace stringify_keys
+    end
+
     ##
     ## Turn all keys into symbols
     ##
@@ -33,11 +40,11 @@ module Planter
       end
     end
 
-    #
-    # Destructive version of #symbolize_keys
-    #
-    # @return [Hash] Hash with symbolized keys
-    #
+    ##
+    ## Destructive version of #symbolize_keys
+    ##
+    ## @return [Hash] Hash with symbolized keys
+    ##
     def symbolize_keys!
       replace symbolize_keys
     end

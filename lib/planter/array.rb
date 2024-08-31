@@ -57,15 +57,23 @@ module Planter
                  v
                end
       end
+    end
 
-      #
-      # Destructive version of #symbolize_keys
-      #
-      # @return [Array] Array with symbolized keys
-      #
-      def symbolize_keys!
-        replace symbolize_keys
-      end
+    #
+    # Destructive version of #symbolize_keys
+    #
+    # @return [Array] Array with symbolized keys
+    #
+    def symbolize_keys!
+      replace deep_dup.symbolize_keys
+    end
+
+    ## Deep duplicate an array of hashes or arrays
+    ##
+    ## @return [Array] Deep duplicated array
+    ##
+    def deep_dup
+      map { |v| v.is_a?(Hash) || v.is_a?(Array) ? v.deep_dup : v.dup }
     end
   end
 end
