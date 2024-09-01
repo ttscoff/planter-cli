@@ -1,5 +1,5 @@
 #!/bin/bash
 
 cd /planter
-bundle install
+bundle update
 rake test

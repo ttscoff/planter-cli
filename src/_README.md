@@ -32,9 +32,9 @@ git_init: false
 preserve_tags: true
 ```
 
-### Scripts.
+### Scripts
 
-Scripts for execution after planting can be stored in `~/.config/planter/scripts` and referenced by filename only. Alternatively, scripts may be stored within a template in a `_scritps` subfolder.
+Scripts for execution after planting can be stored in `~/.config/planter/scripts` and referenced by filename only. Alternatively, scripts may be stored within a template in a `_scripts` subfolder.
 
 Scripts can be executable files in any language, and receive the template directory and the planted directory as arguments $1 and $2.
 
