@@ -1,10 +1,12 @@
 ### 3.0.2
 
-2024-09-01 09:44
+2024-09-01 09:46
 
 #### IMPROVED
 
 - Add basic CLI tests
+- Better debug output and output of info messages above spinner
+- Handle Bash-style globs in file: filenames
 
 ### 3.0.1
 
