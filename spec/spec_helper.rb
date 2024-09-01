@@ -24,3 +24,30 @@ RSpec.configure do |c|
   end
   c.add_formatter 'd'
 end
+
+require 'open3'
+require 'time'
+
+module PlanterHelpers
+  PLANTER_EXEC = File.join(File.dirname(__FILE__), '..', 'bin', 'plant')
+
+  def planter_with_env(env, *args, stdin: nil)
+    env['PLANTER_BASE_DIR'] = File.expand_path('spec')
+    pread(env, 'bundle', 'exec', PLANTER_EXEC, "--base-dir=#{File.dirname(__FILE__)}", *args, stdin: stdin)
+  end
+
+  def pread(env, *cmd, stdin: nil)
+    out, err, status = Open3.capture3(env, *cmd, stdin_data: stdin)
+    unless status.success?
+      raise [
+        "Error (#{status}): #{cmd.inspect} failed", "STDOUT:", out.inspect, "STDERR:", err.inspect
+      ].join("\n")
+    end
+    pp out, err, status
+    [out, err, status]
+  end
+
+  def planter(*args, stdin: nil)
+    planter_with_env({}, *args, stdin: stdin)
+  end
+end
