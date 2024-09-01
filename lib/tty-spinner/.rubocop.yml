@@ -1,0 +1,78 @@
+AllCops:
+  NewCops: enable
+
+Layout/FirstArrayElementIndentation:
+  Enabled: false
+
+Layout/FirstHashElementIndentation:
+  Enabled: false
+
+Layout/LineLength:
+  Max: 82
+
+Layout/SpaceInsideHashLiteralBraces:
+  EnforcedStyle: no_space
+
+Lint/AssignmentInCondition:
+  Enabled: false
+
+Metrics/AbcSize:
+  Max: 30
+
+Metrics/BlockLength:
+  CountComments: true
+  Max: 25
+  IgnoredMethods: []
+  Exclude:
+    - "spec/**/*"
+
+Metrics/ClassLength:
+  Max: 1500
+
+Metrics/CyclomaticComplexity:
+  Enabled: false
+
+Metrics/MethodLength:
+  Max: 20
+
+Naming/FileName:
+  Exclude:
+    - "lib/tty-spinner.rb"
+
+Naming/BinaryOperatorParameterName:
+  Enabled: false
+
+Style/AsciiComments:
+  Enabled: false
+
+Style/BlockDelimiters:
+  Enabled: false
+
+Style/CommentedKeyword:
+  Enabled: false
+
+Style/FrozenStringLiteralComment:
+  Exclude:
+    - "spec/**/*"
+
+Style/LambdaCall:
+  SupportedStyles:
+  - call
+  - braces
+
+Style/Semicolon:
+  Exclude:
+    - "spec/**/*"
+
+Style/StringLiterals:
+  EnforcedStyle: double_quotes
+
+Style/StringLiteralsInInterpolation:
+  EnforcedStyle: double_quotes
+
+Style/SymbolProc:
+  Exclude:
+    - "spec/**/*"
+
+Style/TrivialAccessors:
+  Enabled: false

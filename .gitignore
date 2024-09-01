@@ -45,3 +45,4 @@ Gemfile.lock
 .history
 spec/test/
 spec/noop
+bundle
