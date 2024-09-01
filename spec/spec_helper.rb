@@ -32,7 +32,6 @@ module PlanterHelpers
   PLANTER_EXEC = File.join(File.dirname(__FILE__), '..', 'bin', 'plant')
 
   def planter_with_env(env, *args, stdin: nil)
-    env['PLANTER_BASE_DIR'] = File.expand_path('spec')
     pread(env, 'bundle', 'exec', PLANTER_EXEC, "--base-dir=#{File.dirname(__FILE__)}", *args, stdin: stdin)
   end
 
@@ -43,7 +42,7 @@ module PlanterHelpers
         "Error (#{status}): #{cmd.inspect} failed", "STDOUT:", out.inspect, "STDERR:", err.inspect
       ].join("\n")
     end
-    pp out, err, status
+
     [out, err, status]
   end
 

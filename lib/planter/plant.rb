@@ -187,14 +187,14 @@ module Planter
         new_content.gsub!(%r{^.{.4}/?merge *.{,4}\n}, '') if new_content =~ /^.{.4}merge *\n/
 
         unless content == new_content
-          Planter.notify("Applying variables to #{file}", :debug)
+          Planter.notify("Applying variables to #{file}", :debug, above_spinner: true)
           File.open(file, 'w') { |f| f.puts new_content }
         end
       end
 
       true
     rescue StandardError => e
-      Planter.notify("#{e}\n#{e.backtrace}", :debug)
+      Planter.notify("#{e}\n#{e.backtrace}", :debug, above_spinner: true)
       'Error updating files/directories'
     end
 
@@ -215,7 +215,7 @@ module Planter
 
       true
     rescue StandardError => e
-      Planter.notify("#{e}\n#{e.backtrace}", :debug)
+      Planter.notify("#{e}\n#{e.backtrace}", :debug, above_spinner: true)
       'Error initializing git'
     end
   end

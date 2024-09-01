@@ -15,6 +15,28 @@ module Planter
       snake_case.to_sym
     end
 
+    #
+    # Convert {a,b,c} to (?:a|b|c)
+    #
+    # @return [String] Converted string
+    #
+    def glob_to_rx
+      gsub(/\\?\{(.*?)\\?\}/) do
+        m = Regexp.last_match
+        "(?:#{m[1].split(/,/).map { |c| Regexp.escape(c) }.join('|')})"
+      end
+    end
+
+    #
+    # Convert a string to a regular expression by escaping special
+    # characters and converting wildcards (*,?) to regex wildcards
+    #
+    # @return [String] String with wildcards converted (not Regexp)
+    #
+    def to_rx
+      gsub(/([.()])/, '\\\\\1').gsub(/\?/, '.').gsub(/\*/, '.*?').glob_to_rx
+    end
+
     ##
     ## Convert a slug into a class name
     ##

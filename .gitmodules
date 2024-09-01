@@ -1,0 +1,3 @@
+[submodule "lib/planter/tty-spinner"]
+	path = lib/planter/tty-spinner
+	url = git@github.com:piotrmurach/tty-spinner.git

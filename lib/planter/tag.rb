@@ -28,7 +28,7 @@ module Planter
         res = $? == 0
 
         if res
-          Planter.notify("Added tags to #{target}", :debug)
+          Planter.notify("[Added tags] to #{target}", :debug, above_spinner: true)
         else
           Planter.notify("Failed to add tags to #{target}", :error)
         end
@@ -57,7 +57,7 @@ module Planter
         res = $? == 0
 
         if res
-          Planter.notify("Copied tags from #{source} to #{target}", :debug)
+          Planter.notify("[Copied tags] from #{source} to #{target}", :debug, above_spinner: true)
         else
           Planter.notify("Failed to copy tags from #{source} to #{target}", :error)
         end
@@ -79,7 +79,7 @@ module Planter
         res = $? == 0
 
         if res
-          Planter.notify("Set tags on #{target}", :debug)
+          Planter.notify("[Set tags] on #{target}", :debug, above_spinner: true)
         else
           Planter.notify("Failed to set tags on #{target}", :error)
         end

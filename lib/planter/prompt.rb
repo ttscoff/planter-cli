@@ -54,10 +54,10 @@ module Planter
               else
                 read_line
               end
-        Planter.notify("{dw}#{prompt}: {dy}#{res}{x}", :debug)
+        Planter.notify("{dw}#{prompt} => {dy}#{res}{x}", :debug, newline: false)
         res
       rescue TTY::Reader::InputInterrupt
-        raise Errors::InputError('Canceled')
+        raise Errors::InputError.new('Canceled')
       end
 
       private
@@ -116,7 +116,7 @@ module Planter
         default = date_default
 
         default = default ? " {bw}[#{default}]" : ''
-        Planter.notify("{by}#{prompt} (natural language)#{default}")
+        Planter.notify("{by}#{prompt} (natural language)#{default}", newline: false)
         line = @gum ? read_line_gum : read_line_tty
         return default unless line
 
@@ -135,7 +135,7 @@ module Planter
       def read_line(prompt: nil)
         prompt ||= @prompt
         default = @default ? " {bw}[#{@default}]" : ''
-        Planter.notify("{by}#{prompt}#{default}")
+        Planter.notify("{by}#{prompt}#{default}", newline: false)
 
         res = @gum ? read_line_gum : read_line_tty
 
@@ -156,7 +156,7 @@ module Planter
       def read_lines(prompt: nil)
         prompt ||= @prompt
         save = @gum ? 'Ctrl-J for newline, Enter' : 'Ctrl-D'
-        Planter.notify("{by}#{prompt} {xc}({bw}#{save}{xc} to save)'")
+        Planter.notify("{by}#{prompt} {xc}({bw}#{save}{xc} to save)'", newline: false)
         res = @gum ? read_multiline_gum(prompt) : read_mutliline_tty
 
         return @default unless res

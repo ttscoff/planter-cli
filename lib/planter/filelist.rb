@@ -39,7 +39,7 @@ module Planter
         handle_operator(file)
       end
     rescue StandardError => e
-      Planter.notify("#{e}\n#{e.backtrace}", :debug)
+      Planter.notify("#{e}\n#{e.backtrace}", :debug, above_spinner: true)
       Planter.notify('Error copying files/directories', :error, exit_code: 128)
     end
 
@@ -141,7 +141,8 @@ module Planter
       # If there are any merge sections left, merge them with the target file
       if merges.count.positive?
         File.open(entry.target, 'w') { |f| f.puts "#{target_content.chomp}\n\n#{merges.join("\n\n")}" }
-        Planter.notify("Merged #{entry.file} => #{entry.target} (#{merges.count} merges)", :debug)
+        Planter.notify("[Merged] #{entry.file} => #{entry.target} (#{merges.count} merges)", :debug,
+                       above_spinner: true)
       else
         # If there are no merge sections left, copy the file instead
         copy_file(entry)
@@ -166,12 +167,12 @@ module Planter
         # Copy the file if it isn't a directory
         FileUtils.cp(file.file, file.target) unless File.directory?(file.file)
         # Log a message to the console
-        Planter.notify("Copied #{file.file} => #{file.target}", :debug)
+        Planter.notify("[Copied] #{file.file} => #{file.target}", :debug, above_spinner: true)
         # Return true to indicate success
         true
       else
         # Log a message to the console
-        Planter.notify("Skipped #{file.file} => #{file.target}", :debug)
+        Planter.notify("[Skipped] #{file.file} => #{file.target}", :debug, above_spinner: true)
         # Return false to indicate that the copy was skipped
         false
       end

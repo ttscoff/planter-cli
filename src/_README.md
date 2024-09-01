@@ -79,6 +79,8 @@ files:
   "%%title%%.md": overwrite
 ```
 
+Filenames can include wildcards (`*`, `?`), and Bash-style globbing (`[0-9]`, `[a-z]`, `{one,two,three}`).
+
 If `merge` is specified, then the source file is scanned for merge comments and those are merged if they don't exist in the copied/existing file. If no merge comments are defined, then the entire contents of the source file are appended to the destination file (unless the file already matches the source). Merge comments start with `merge` and end with `/merge` and can have any comment syntax preceding them, for example:
 
 ```
@@ -109,7 +111,7 @@ replacements:
   "(main|app)\.js": "%%script:lower%%.js"
 ```
 
-Replacements are performed on both file/directory names and file contents.
+Replacements are performed on both file/directory names and file contents. This is especially handy when the source of the plant is a Git repo, allowing the replacement of elements without having to create %%templated%% filenames and contents.
 
 ### Finder Tags
 

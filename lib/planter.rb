@@ -11,9 +11,10 @@ require 'plist'
 require 'chronic'
 require 'tty-reader'
 require 'tty-screen'
-require 'tty-spinner'
+# require 'tty-spinner'
 require 'tty-which'
 
+require_relative 'tty-spinner/lib/tty-spinner'
 require_relative 'planter/version'
 require_relative 'planter/hash'
 require_relative 'planter/array'
@@ -72,20 +73,28 @@ module Planter
     ## @param      string             [String] The message string
     ## @param      notification_type  [Symbol] The notification type (:debug, :error, :warn, :info)
     ## @param      exit_code          [Integer] If provided, exit with code after delivering message
+    ## @param      newline            [Boolean] If true, add a newline to the message
+    ## @param      above_spinner      [Boolean] If true, print above the spinner
     ##
-    def notify(string, notification_type = :info, exit_code: nil)
-      case notification_type
-      when :debug
-        return false unless @debug
+    ## @return     [Boolean] true if message was printed
+    def notify(string, notification_type = :info, newline: true, above_spinner: false, exit_code: nil)
+      color = case notification_type
+              when :debug
+                return false unless @debug
 
-        warn "\n{dw}#{string}{x}".x
-      when :error
-        warn "{br}#{string}{x}".x
-      when :warn
-        warn "{by}#{string}{x}".x
-      else
-        warn "{bw}#{string}{x}".x
-      end
+                '{dw}'
+              when :error
+                '{br}'
+
+              when :warn
+                '{by}'
+              else
+                '{bw}'
+              end
+      out = "#{color}#{string}{x}"
+      out.gsub!(/\[(.*?)\]/, "{by}\\1{x}#{color}")
+      out = "\n#{out}" if newline
+      above_spinner ? spinner.log(out.x) : warn(out.x)
 
       Process.exit exit_code unless exit_code.nil?
 
@@ -197,13 +206,17 @@ module Planter
             key: 'var_key',
             prompt: 'CLI Prompt',
             type: '[string, float, integer, number, date]',
-            value: '(optional, for date type can be today, time, now, etc., empty to prompt)',
+            value: '(optional, force value, can include variables. Empty to prompt. For date type: today, now, etc.)',
             default: '(optional default value, leave empty or remove key for no default)',
             min: '(optional, for number type set a minimum value)',
             max: '(optional, for number type set a maximum value)'
           ],
           git_init: false,
-          files: { '*.tmp' => 'ignore' }
+          files: {
+            '*.tmp' => 'ignore',
+            '*.bak' => 'ignore',
+            '.DS_Store' => 'ignore'
+          }
         }
         FileUtils.mkdir_p(base_dir)
         File.open(config, 'w') { |f| f.puts(YAML.dump(default_config.stringify_keys)) }
@@ -238,7 +251,7 @@ module Planter
     def process_patterns
       patterns = {}
       @config[:files].each do |file, oper|
-        pattern = Regexp.new(".*?/#{file.to_s.sub(%r{^/}, '').gsub(/\./, '\.').gsub(/\*/, '.*?').gsub(/\?/, '.')}$")
+        pattern = Regexp.new(".*?/#{file.to_s.sub(%r{^/}, '').to_rx}$")
         operator = oper.normalize_operator
         patterns[pattern] = operator
       end
