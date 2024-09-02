@@ -140,6 +140,8 @@ The key should be an existing key defined in `variables`. The operator can be an
 - `<` (less than)
 - `<=` (less than or equal)
 
+Any of these operators can be inverted (negated) by preceding with an exclamation point, e.g. `!=` means `not equal` and `!*=` means `does not contain`.
+
 The value after the operator doesn't need to be quoted, anything after the operator will be compared to the value of the key.
 
 Logic can be used on multiple lines like the example above, or on a single line (useful for filenames):
