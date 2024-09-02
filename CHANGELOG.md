@@ -1,3 +1,11 @@
+### 3.0.4
+
+2024-09-02 08:43
+
+#### FIXED
+
+- Incorrect binary name in help banner
+
 ### 3.0.3
 
 2024-09-02 08:02

@@ -199,7 +199,7 @@ If `preserve_tags` is set to `true` in the config (either base or template), the
 The executable for Planter is `plant`. You can run `plant TEMPLATE` in any directory and TEMPLATE will be planted in the current directory. You can also use `--in PATH` to plant in another directory.
 
 ```
-Usage: planter [options] TEMPLATE
+Usage: plant [options] TEMPLATE
     --defaults                       Accept default values for all variables
     -i, --in TARGET                  Plant in TARGET instead of current directory
     -o, --overwrite                  Overwrite existing files
