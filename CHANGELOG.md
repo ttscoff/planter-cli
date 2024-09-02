@@ -1,3 +1,17 @@
+### 3.0.3
+
+2024-09-02 08:02
+
+#### CHANGED
+
+- Multiline is now "paragraph"
+- Module type now requires "mod" at minimum
+
+#### NEW
+
+- Multiple choice variable type (ch|mu)
+- If/then logic in templates
+
 ### 3.0.2
 
 2024-09-01 09:46
