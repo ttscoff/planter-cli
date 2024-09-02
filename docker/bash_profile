@@ -2,6 +2,7 @@
 export GLI_DEBUG=true
 export EDITOR="/usr/bin/vim"
 alias b="bundle exec bin/plant"
+alias be="bundle exec"
 alias quit="exit"
 
 shopt -s nocaseglob
@@ -11,5 +12,5 @@ shopt -s histverify
 shopt -s cmdhist
 
 cd /planter
-bundle install
+bundle update
 gem install pkg/*.gem
