@@ -13,10 +13,6 @@ Plant a directory structure and files using templates.
 
 If you run into errors, try `gem install --user-install planter-cli`, or as a last ditch effort, `sudo gem install planter-cli`.
 
-### Optional
-
-If [Gum](https://github.com/charmbracelet/gum) is available it will be used for command line input.
-
 ## Configuration
 
 Planter's base configuration is in `~/.config/planter/planter.yml`. This file can contain any of the keys used in templates (see below) and will serve as a base configuration for all templates. Any key defined in this file will be overridden if it exists in a template.
@@ -42,7 +38,7 @@ Scripts can be executable files in any language, and receive the template direct
 
 Templates are directories found in `~/.config/planter/templates/[TEMPLATE_NAME]`. All files and directories inside of these template directories are copied when that template is called. Filenames, directory names, and file contents can all use template placeholders.
 
-Template placeholders are defined with `%%KEY%%`, where key is the key defined in the `variables` section of the configuration. %%KEY%% placeholders can be used in directory/file names, and in the file contents. These work in any plain text or RTF format document, including XML, so they can be used in things like Scrivener templates and MindNode files as well.
+Template placeholders are defined with `%%KEY%%`, where key is the key defined in the `variables` section of the configuration. `%%KEY%%` placeholders can be used in directory/file names, and in the file contents. These work in any plain text or RTF format document, including XML, so they can be used in things like Scrivener templates and MindNode files as well.
 
 Each template contains a `_planter.yml` file that defines variables and other configuration options. The file format for all configuration files is [YAML](https://yaml.org/spec/1.2.2/).
 
@@ -57,23 +53,28 @@ variables:
     default: Untitled
     min: 1
     max: 5
+```
+
+A configuration can include additional keys:
+
+```yaml
 script: # array of scripts, args passed as [script and args] TEMPLATE_DIR PWD
   - process.py
 git_init: false # if true, initialize a git repository in the newly-planted directory
 files: # Dictionary for file handling (see [File-specific handling](#file-specific-handling))
 replacements: # Dictionary of pattern/replacments for regex substitution, see [Regex replacements](#regex-replacements)
-repo: # If a repository URL is provided, it will be pulled and duplicated instead of copying a file structure
+repo: # If a repository URL is provided, it will be pulled and duplicated instead of copying an existing file structure
 ```
 
 #### Default values in template strings
 
-In a template you can add a default value for a placholder by adding `%default value` to it. For example, `%%project%Default Project%%` will set the placeholder to `Default Project` if the variable value matches the default value in the configuration. This allows you to accept the default on the command line but have a different value inserted in the template. To use another variable in its place, use `$KEY` in the placeholder, e.g. `%%project%$title%%` will replace the `project` key with the value of `title` if the default is selected. Modifiers can be used on either side of the `%`, e.g. `%%project%$title:snake%%`.
+In a template you can add a default value for a placholder by adding `%default value` to it. For example, `%%project%Default Project%%` will set the placeholder to `Default Project` if the variable value matches the default value in the configuration (or doesn't exist). This allows you to accept the default on the command line but have a different value inserted in the template. To use another variable in its place, use `$KEY` in the placeholder, e.g. `%%project%$title%%` will replace the `project` key with the value of `title` if the default is selected. Modifiers can be used on either side of the `%`, e.g. `%%project%$title:snake%%`.
 
 #### Multiple choice type
 
 If the `type` is set to `choice`, then the key `choices` can contain a hash or array of choices. The key that accepts the choice should be surrounded with parenthesis (required for each choice).
 
-If a Hash is defined, each choice can have a result string:
+If a Hash/Dictionary is defined, each choice can have a result string:
 
 ```yaml
 variables:
@@ -89,7 +90,9 @@ variables:
       (z)sh: "#! /bin/zsh"
 ```
 
-If an array is defined, the string of the choice will also be its result:
+When a choice is selected from a dictionary, the result string will be inserted instead of the choice title.
+
+If an array is defined, the string of the choice will also be its result (minus any parenthesis):
 
 ```yaml
 variables:
@@ -105,7 +108,7 @@ variables:
       - 1. zsh
 ```
 
-If the choice starts with a number (as above), then a numeric list will be generated and typing the associated index number will accept that choice. Numeric lists are automatically numbered, so the preceding digit doesn't matter, as long as it's a digit. In this case a default can be defined with an integer for its placement in the list (starting with 1), and parenthesis aren't required.
+If the choice starts with a number (as above), then a numeric list will be generated and typing the associated index number will accept that choice. Numeric lists are automatically numbered, so the preceding digit doesn't matter, as long as it's a digit. In this case a default can be defined with an integer (in the `defaults:` key) for its placement in the list (starting with 1), and parenthesis aren't required.
 
 #### If/then logic
 
