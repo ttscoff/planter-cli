@@ -26,7 +26,7 @@ Planter.base_dir = ENV['PLANTER_DIR'] || File.expand_path('~/.config/planter')
 Planter::Color.coloring = $stdout.isatty
 
 opts = OptionParser.new
-opts.banner = 'Usage: planter [options] TEMPLATE'
+opts.banner = 'Usage: plant [options] TEMPLATE'
 
 Planter.accept_defaults = false
 opts.on('--defaults', 'Accept default values for all variables') do
