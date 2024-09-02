@@ -45,7 +45,8 @@ module Planter
           default: var[:default],
           value: var[:value],
           min: var[:min],
-          max: var[:max]
+          max: var[:max],
+          choices: var[:choices] || nil
         )
         answer = q.ask
         if answer.nil?
@@ -158,8 +159,8 @@ module Planter
           s.run
         end
       end
-      Planter.spinner.update(title: '😄')
-      Planter.spinner.success(' Planting complete!')
+      Planter.spinner.update(title: 'Planting complete!')
+      Planter.spinner.success
     end
 
     ##
@@ -182,19 +183,20 @@ module Planter
         next if File.binary?(file)
 
         content = IO.read(file)
-        new_content = content.apply_variables.apply_regexes
+
+        new_content = content.apply_logic.apply_variables.apply_regexes
 
         new_content.gsub!(%r{^.{.4}/?merge *.{,4}\n}, '') if new_content =~ /^.{.4}merge *\n/
 
         unless content == new_content
-          Planter.notify("Applying variables to #{file}", :debug, above_spinner: true)
+          Planter.notify("Applying variables to #{file}", :debug)
           File.open(file, 'w') { |f| f.puts new_content }
         end
       end
 
       true
     rescue StandardError => e
-      Planter.notify("#{e}\n#{e.backtrace}", :debug, above_spinner: true)
+      Planter.notify("#{e}\n#{e.backtrace}", :debug)
       'Error updating files/directories'
     end
 
@@ -215,7 +217,7 @@ module Planter
 
       true
     rescue StandardError => e
-      Planter.notify("#{e}\n#{e.backtrace}", :debug, above_spinner: true)
+      Planter.notify("#{e}\n#{e.backtrace}", :debug)
       'Error initializing git'
     end
   end

@@ -12,7 +12,20 @@ module Planter
     ## @return     [Symbol] string as variable key
     ##
     def to_var
-      snake_case.to_sym
+      strip_quotes.snake_case.to_sym
+    end
+
+    ## Strip quotes from a string
+    ##
+    ## @return [String] string with quotes stripped
+    ##
+    def strip_quotes
+      sub(/^(["'])(.*)\1$/, '\2')
+    end
+
+    ## Destructive version of #strip_quotes
+    def strip_quotes!
+      replace strip_quotes
     end
 
     #
@@ -184,6 +197,96 @@ module Planter
       replace apply_defaults(variables)
     end
 
+    ## Apply logic to a string
+    ##
+    ## @param variables [Hash] Hash of variables to apply
+    ##
+    def apply_logic(variables = nil)
+      variables = variables.nil? ? Planter.variables : variables
+
+      gsub(/%%if .*?%%.*?%%end(if)?%%/mi) do |construct|
+        res = false
+        # Get the condition and the content
+        output = construct.match(/%%else%%(.*?)%%end/m) ? Regexp.last_match(1) : ''
+
+        conditions = construct.to_enum(:scan,
+                                       /%%(?<statement>(?:els(?:e )?)?if) (?<condition>.*?)%%(?<content>.*?)(?=%%)/mi).map do
+          Regexp.last_match
+        end
+        conditions.each do |condition|
+          variable, operator, value = condition['condition'].split(/ +/, 3)
+          value.strip_quotes!
+          variable = variable.to_var
+          negate = false
+          if operator =~ /^!/
+            operator = operator[1..-1]
+            negate = true
+          end
+          operator = case operator
+                     when /^={1,2}/
+                       :equal
+                     when /^=~/
+                       :matches_regex
+                     when /\*=/
+                       :contains
+                     when /\^=/
+                       :starts_with
+                     when /\$=/
+                       :ends_with
+                     when />/
+                       :greater_than
+                     when /</
+                       :less_than
+                     when />=/
+                       :greater_than_or_equal
+                     when /<=/
+                       :less_than_or_equal
+                     else
+                       :equal
+                     end
+
+          comp = variables[variable.to_var].to_s
+
+          res = case operator
+                when :equal
+                  comp =~ /^#{value}$/i
+                when :matches_regex
+                  comp =~ Regexp.new(value.gsub(%r{^/|/$}, ''))
+                when :contains
+                  comp =~ /#{value}/i
+                when :starts_with
+                  comp =~ /^#{value}/i
+                when :ends_with
+                  comp =~ /#{value}$/i
+                when :greater_than
+                  comp > value.to_f
+                when :less_than
+                  comp < value.to_f
+                when :greater_than_or_equal
+                  comp >= value.to_f
+                when :less_than_or_equal
+                  comp <= value.to_f
+                else
+                  false
+                end
+          res = !res if negate
+
+          next unless res
+
+          Planter.notify("Condition matched: #{comp} #{negate ? 'not ' : ''}#{operator} #{value}", :debug)
+          output = condition['content']
+          break
+        end
+
+        output
+      end
+    end
+
+    ## Destructive version of #apply_logic
+    def apply_logic!(variables)
+      replace apply_logic(variables)
+    end
+
     ##
     ## Apply key/value substitutions to a string. Variables are represented as
     ## %%key%%, and the hash passed to the function is { key: value }
@@ -198,6 +301,8 @@ module Planter
       content = dup.clean_encode
 
       content = content.apply_defaults(variables)
+
+      content = content.apply_logic(variables)
 
       variables.each do |k, v|
         if last_only
@@ -437,15 +542,18 @@ module Planter
       # number or float
       when /^[nf]/
         :float
-      # multiline or paragraph
-      when /^(mu|p)/
+      # paragraph
+      when /^p/
         :multiline
       # class
-      when /^c/
+      when /^cl/
         :class
       # module
-      when /^m/
+      when /^mod/
         :module
+      # multiple choice
+      when /^(ch|mu)/
+        :choice
       # string
       else
         :string
@@ -491,6 +599,14 @@ module Planter
     ##
     def clean_encode!
       replace clean_encode
+    end
+
+    ## Clean up a string by removing leading numbers and parentheticalse
+    ##
+    ## @return [String] cleaned string
+    ##
+    def clean_value
+      sub(/^\(?\d+\.\)? +/, '').sub(/\((.*?)\)/, '\1')
     end
 
     ##

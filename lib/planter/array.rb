@@ -12,7 +12,7 @@ module Planter
     ## @param      default  [String] The color templated output string
     ##
     def abbr_choices(default: nil)
-      chars = join(' ').scan(/\((.)\)/).map { |c| c[0] }
+      chars = join(' ').scan(/\((?:(.)\.?)\)/).map { |c| c[0] }
       out = String.new
       out << '{xdw}['
       out << chars.map do |c|
@@ -23,6 +23,61 @@ module Planter
         end
       end.join('{dw}/')
       out << '{dw}]{x}'
+    end
+
+    ## Convert an array of choices to a string with optional numbering
+    ##
+    ## @param      numeric  [Boolean] Include numbering
+    ##
+    ## @return     [Array] Array of choices
+    ##
+    def to_options(numeric)
+      map.with_index do |c, i|
+        # v = c.to_s.match(/\(?([a-z]|\d+\.?)\)?/)[1].strip
+        if numeric
+          "(#{i + 1}). #{c.to_s.sub(/^\(?\d+\.?\)? +/, '')}"
+        else
+          c
+        end
+      end
+    end
+
+    ## Find the index of a choice in an array of choices
+    ##
+    ## @param      choice  [String] The choice to find
+    ##
+    ## @return     [Integer] Index of the choice
+    ##
+    def option_index(choice)
+      index = find_index { |c| c.to_s.match(/\((.+)\)/)[1].strip.sub(/\.$/, '') == choice }
+      index || false
+    end
+
+    ## Convert an array of choices to a hash
+    ##  - If the array contains hashes, they are converted to key/value pairs
+    ##  - If the array contains strings, they are used as both key and value
+    ##
+    ## @return     [Hash] Hash of choices
+    ##
+    def choices_to_hash
+      hash = {}
+      each do |c|
+        if c.is_a?(Hash)
+          hash[c.keys.first.to_s] = c.values.first.to_s
+        else
+          hash[c.to_s] = c.to_s
+        end
+      end
+
+      hash
+    end
+
+    ## Clean strings in an array by removing numbers and parentheses
+    ##
+    ## @return [Array] Array with cleaned strings
+    ##
+    def to_values
+      map(&:clean_value)
     end
 
     ##

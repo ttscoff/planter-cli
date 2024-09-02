@@ -52,7 +52,7 @@ First, there's a `variables` section that defines variables used in the template
 variables:
   - key: var_key
     prompt: Prompt text
-    type: string # [string,multiline,float,integer,number,date] defaults to string
+    type: string # [string,paragraph,float,integer,number,date,choice] defaults to string
     # value: (force value, string can include %%variables%% and regexes will be replaced. For date type can be today, time, now, etc.)
     default: Untitled
     min: 1
@@ -69,6 +69,85 @@ repo: # If a repository URL is provided, it will be pulled and duplicated instea
 
 In a template you can add a default value for a placholder by adding `%default value` to it. For example, `%%project%Default Project%%` will set the placeholder to `Default Project` if the variable value matches the default value in the configuration. This allows you to accept the default on the command line but have a different value inserted in the template. To use another variable in its place, use `$KEY` in the placeholder, e.g. `%%project%$title%%` will replace the `project` key with the value of `title` if the default is selected. Modifiers can be used on either side of the `%`, e.g. `%%project%$title:snake%%`.
 
+#### Multiple choice type
+
+If the `type` is set to `choice`, then the key `choices` can contain a hash or array of choices. The key that accepts the choice should be surrounded with parenthesis (required for each choice).
+
+If a Hash is defined, each choice can have a result string:
+
+```yaml
+variables:
+  - key: shebang
+    prompt: Shebang line
+    type: choice
+    default: r
+    choices:
+      (r)uby: "#! /usr/bin/env ruby"
+      (j)avascript: "#! /usr/bin/env node"
+      (p)ython: "#! /usr/bin/env python"
+      (b)ash: "#! /bin/bash"
+      (z)sh: "#! /bin/zsh"
+```
+
+If an array is defined, the string of the choice will also be its result:
+
+```yaml
+variables:
+  - key: language
+    prompt: Programming language
+    type: choice
+    default: 1
+    choices:
+      - 1. ruby
+      - 1. javascript
+      - 1. python
+      - 1. bash
+      - 1. zsh
+```
+
+If the choice starts with a number (as above), then a numeric list will be generated and typing the associated index number will accept that choice. Numeric lists are automatically numbered, so the preceding digit doesn't matter, as long as it's a digit. In this case a default can be defined with an integer for its placement in the list (starting with 1), and parenthesis aren't required.
+
+#### If/then logic
+
+A template can use if/then logic, which is useful with multiple choice types. It can be applied to any type, though.
+
+The format for if/then logic is:
+
+```
+%%if KEY OPERATOR VALUE%%
+content
+%%else if KEY OPERATOR VALUE2%%
+content 2
+%%else%%
+content 3
+%%endif%%
+```
+
+There should be no spaces around the comparison, e.g. `%% if language == javascript %%` won't work. The block must start with an `if` statement and end with `%%endif%%` or `%%end%%`. The `%%else%%` statement is optional -- if it doesn't exist then the entire block will be removed if no conditions are met.
+
+The key should be an existing key defined in `variables`. The operator can be any of:
+
+- `==` or `=` (equals)
+- `=~` (matches regex)
+- `*=` (contains)
+- `^=` (starts with)
+- `$=` (ends with)
+- `>` (greater than)
+- `>=` (greater than or equal)
+- `<` (less than)
+- `<=` (less than or equal)
+
+The value after the operator doesn't need to be quoted, anything after the operator will be compared to the value of the key.
+
+Logic can be used on multiple lines like the example above, or on a single line (useful for filenames):
+
+```
+%%project%%.%%if language == javascript%%js%%else if language == ruby%%rb%%else%%sh%%endif%%
+```
+
+Content within if/else blocks can contain variables.
+
+
 ### File-specific handling
 
 A `files` dictionary can specify how to handle specific files. Options are `copy`, `overwrite`, `merge`, or `ask`. The key for each entry is a filename or glob that matches the source filename (accounting for template variables if applicable):
@@ -79,7 +158,7 @@ files:
   "%%title%%.md": overwrite
 ```
 
-Filenames can include wildcards (`*`, `?`), and Bash-style globbing (`[0-9]`, `[a-z]`, `{one,two,three}`).
+Filenames can include wildcards (`*`, `?`), and Bash-ish globbing (`[0-9]`, `[a-z]`, `{one,two,three}`).
 
 If `merge` is specified, then the source file is scanned for merge comments and those are merged if they don't exist in the copied/existing file. If no merge comments are defined, then the entire contents of the source file are appended to the destination file (unless the file already matches the source). Merge comments start with `merge` and end with `/merge` and can have any comment syntax preceding them, for example:
 

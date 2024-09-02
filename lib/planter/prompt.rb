@@ -23,6 +23,7 @@ module Planter
         @prompt = question[:prompt] || nil
         @default = question[:default]
         @value = question[:value]
+        @choices = question[:choices] || []
         @gum = false # TTY::Which.exist?('gum')
       end
 
@@ -37,6 +38,8 @@ module Planter
         return @value.to_s.apply_variables.apply_regexes.coerce(@type) if @value && @type != :date
 
         res = case @type
+              when :choice
+                Prompt.choice(@choices, @prompt, default_response: @default)
               when :integer
                 read_number(integer: true)
               when :float
@@ -238,18 +241,36 @@ module Planter
     ## @param      default_response  [String] The character of the default
     ##                               response
     ##
-    ## @return     [String] character of selected response, lowercased
+    ## @return     [String] string of selected response with parenthesis removed
     ##
     def self.choice(choices, prompt = 'Make a selection', default_response: nil)
       $stdin.reopen('/dev/tty')
 
-      default = default_response.is_a?(String) ? default_response.downcase : nil
+      choices = choices.choices_to_hash if choices.is_a?(Array) && choices.first.is_a?(Hash)
 
-      # if this isn't an interactive shell, answer default
-      return default unless $stdout.isatty
+      if choices.is_a?(Hash)
+        choices.stringify!
+        numeric = choices.keys.first =~ /^\(?\d+\.?\)? /
+        keys = choices.keys.to_options(numeric)
+        values = choices.values.map(&:clean_value)
+        choices = choices.keys
+      else
+        numeric = choices.first =~ /^\(?\d+\.?\)? /
+        keys = choices.to_options(numeric)
+        values = choices.to_values.map(&:clean_value)
+      end
 
-      # If --defaults is set, return default
-      return default if Planter.accept_defaults || ENV['PLANTER_DEBUG']
+      default = case default_response.to_s
+                when /^\d+$/
+                  values[default.to_i]
+                when /^[a-z]$/i
+                  keys.include?(default_response) ? values[keys.index(default_response)] : nil
+                end
+
+      # If --defaults is set or not an interactive shell, return default
+      return default if Planter.accept_defaults || ENV['PLANTER_DEBUG'] || !$stdout.isatty
+
+      default = default_response.to_s if default_response
 
       # clear the buffer
       if ARGV&.length
@@ -259,9 +280,10 @@ module Planter
       end
       system 'stty cbreak'
 
-      vertical = choices.join(' ').length + 4 > TTY::Screen.cols
-      desc = choices.map { |c| c.highlight_character(default: default) }
-      abbr = choices.abbr_choices(default: default)
+      vertical = numeric || choices.join(', ').length + 4 > TTY::Screen.cols
+
+      desc = keys.map { |c| c.highlight_character(default: default) }
+      abbr = keys.abbr_choices(default: default)
 
       options = if vertical
                   "{x}#{desc.join("\n")}\n{by}#{prompt}{x} #{abbr}{bw}? "
@@ -270,16 +292,34 @@ module Planter
                 end
 
       $stdout.syswrite options.x
-      res = $stdin.sysread 1
+
+      res = if numeric && choices.length > 9
+              $stdin.sysread choices.length.to_s.length
+            else
+              $stdin.sysread 1
+            end
+
       puts
       system 'stty cooked'
 
       res.chomp!
       res.downcase!
 
-      res.empty? ? default : res
+      res = res.empty? ? default : res
+
+      if res.to_i.positive?
+        values[res.to_i - 1]
+      elsif res =~ /^[a-z]/ && keys&.option_index(res)
+        values[keys.option_index(res)]
+      end
     end
 
+    ## Determine what to do with a file
+    ##
+    ## @param entry [FileEntry] The file entry
+    ##
+    ## @return [Symbol] :merge, :overwrite, :copy, :ignore
+    ##
     def self.file_what?(entry)
       options = %w[(o)vewrite (m)erge]
       options << '(c)opy' unless File.exist?(entry.target)

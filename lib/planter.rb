@@ -92,7 +92,7 @@ module Planter
                 '{bw}'
               end
       out = "#{color}#{string}{x}"
-      out.gsub!(/\[(.*?)\]/, "{by}\\1{x}#{color}")
+      out = out.gsub(/\[(.*?)\]/, "{by}\\1{x}#{color}")
       out = "\n#{out}" if newline
       above_spinner ? spinner.log(out.x) : warn(out.x)
 

@@ -114,6 +114,33 @@ describe ::String do
     end
   end
 
+  describe '.apply_logic' do
+    it 'applies a single logic replacement' do
+      template = 'Hello %%if language == ruby%%World%%else%%There%%end%%!'
+      logic = { language: 'ruby' }
+      expect(template.apply_logic(logic)).to eq 'Hello World!'
+    end
+
+    it 'handles quotes in logic' do
+      template = 'Hello %%if language == "ruby"%%World%%else%%There%%end%%!'
+      logic = { language: 'ruby' }
+      expect(template.apply_logic(logic)).to eq 'Hello World!'
+    end
+
+    it 'handles no logic replacements' do
+      template = 'Hello, World!'
+      logic = {}
+      expect(template.apply_logic(logic)).to eq 'Hello, World!'
+    end
+
+    it 'Operates in place' do
+      template = 'Hello %%if language == "ruby"%%World%%else%%There%%end%%!'
+      logic = { language: 'ruby' }
+      template.apply_logic!(logic)
+      expect(template).to eq 'Hello World!'
+    end
+  end
+
   describe '.apply_regexes' do
     it 'applies a single regex replacement' do
       template = 'Hello, World!'
@@ -171,15 +198,15 @@ describe ::String do
     end
 
     it 'normalizes a multiline type' do
-      expect("multi".normalize_type.to_s).to eq "multiline"
+      expect("para".normalize_type.to_s).to eq "multiline"
     end
 
     it 'normalizes a class type' do
-      expect("c".normalize_type.to_s).to eq "class"
+      expect("cl".normalize_type.to_s).to eq "class"
     end
 
-    it 'normalizes a module type' do
-      expect("m".normalize_type.to_s).to eq "module"
+    it 'normalizes a multiple choice type' do
+      expect("choice".normalize_type.to_s).to eq "choice"
     end
   end
 

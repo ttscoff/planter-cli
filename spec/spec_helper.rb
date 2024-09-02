@@ -29,7 +29,7 @@ require 'open3'
 require 'time'
 
 module PlanterHelpers
-  PLANTER_EXEC = File.join(File.dirname(__FILE__), '..', 'bin', 'plant')
+  PLANTER_EXEC = File.join(File.dirname(__FILE__), '..', 'exe', 'plant')
 
   def planter_with_env(env, *args, stdin: nil)
     pread(env, 'bundle', 'exec', PLANTER_EXEC, "--base-dir=#{File.dirname(__FILE__)}", *args, stdin: stdin)

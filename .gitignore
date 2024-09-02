@@ -46,3 +46,4 @@ Gemfile.lock
 spec/test/
 spec/noop
 bundle
+.vscode

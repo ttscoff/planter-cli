@@ -3,6 +3,30 @@
 module Planter
   ## Hash helpers
   class ::Hash
+    ## Turn all keys and values into string
+    ##
+    ## @return     [Hash] copy of the hash where all its keys are strings
+    ##
+    def stringify
+      each_with_object({}) do |(k, v), hsh|
+        hsh[k.to_s] = if v.is_a?(Hash) || v.is_a?(Array)
+                        v.stringify
+                      else
+                        v.to_s
+                      end
+      end
+    end
+
+    ## Destructive version of #stringify
+    ##
+    ## @return [Hash] Hash with stringified keys and values
+    ##
+    ## @see #stringify
+    ##
+    def stringify!
+      replace stringify
+    end
+
     ## Turn all keys into string
     ##
     ## @return     [Hash] copy of the hash where all its keys are strings
