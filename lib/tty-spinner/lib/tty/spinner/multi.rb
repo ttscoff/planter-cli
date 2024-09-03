@@ -112,7 +112,7 @@ module TTY
           pattern_or_spinner
         else
           raise ArgumentError, "Expected a pattern or spinner, " \
-            "got: #{pattern_or_spinner.class}"
+                               "got: #{pattern_or_spinner.class}"
         end
       end
 
@@ -259,8 +259,8 @@ module TTY
       # @api public
       def on(key, &callback)
         unless @callbacks.key?(key)
-          raise ArgumentError, "The event #{key} does not exist. " \
-                               " Use :spin, :success, :error, or :done instead"
+          raise ArgumentError, "The event #{key} does not exist.  " \
+                               "Use :spin, :success, :error, or :done instead"
         end
         @callbacks[key] << callback
         self

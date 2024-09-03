@@ -15,6 +15,7 @@ require 'tty-screen'
 require 'tty-which'
 
 require_relative 'tty-spinner/lib/tty-spinner'
+require_relative 'planter/config'
 require_relative 'planter/version'
 require_relative 'planter/hash'
 require_relative 'planter/array'
@@ -22,13 +23,34 @@ require_relative 'planter/symbol'
 require_relative 'planter/file'
 require_relative 'planter/tag'
 require_relative 'planter/color'
-require_relative 'planter/errors'
 require_relative 'planter/prompt'
 require_relative 'planter/string'
 require_relative 'planter/filelist'
 require_relative 'planter/fileentry'
 require_relative 'planter/script'
 require_relative 'planter/plant'
+
+# @return [Integer] Exit codes
+EXIT_CODES = {
+  argument: 12,
+  input: 13,
+  canceled: 1,
+  script: 10,
+  config: 127,
+  git: 129
+}.deep_freeze
+
+#
+# Exit the program with a message
+#
+# @param msg [String] error message
+# @param level [Symbol] notification level
+# @param code [Integer] Exit code
+#
+def die(msg = 'Exited', code = :canceled)
+  code = EXIT_CODES.key?(code) ? code : :canceled
+  Planter.notify(msg, :error, above_spinner: false, exit_code: EXIT_CODES[code])
+end
 
 # Main Journal module
 module Planter
@@ -56,7 +78,7 @@ module Planter
     attr_accessor :template
 
     ## Config Hash
-    attr_reader :config
+    # attr_reader :config
 
     ## Variable key/values
     attr_accessor :variables
@@ -66,6 +88,10 @@ module Planter
 
     ## Accept all defaults
     attr_accessor :accept_defaults
+
+    def config
+      @config ||= Config.new
+    end
 
     ##
     ## Print a message on the command line
@@ -94,9 +120,13 @@ module Planter
       out = "#{color}#{string}{x}"
       out = out.gsub(/\[(.*?)\]/, "{by}\\1{x}#{color}")
       out = "\n#{out}" if newline
+
+      spinner.update(title: 'ERROR') if exit_code
+      spinner.error if notification_type == :error
+
       above_spinner ? spinner.log(out.x) : warn(out.x)
 
-      Process.exit exit_code unless exit_code.nil?
+      exit(exit_code) if exit_code && !ENV['PLANTER_IRB']
 
       true
     end
@@ -116,56 +146,6 @@ module Planter
 
     def base_dir
       @base_dir ||= ENV['PLANTER_BASE_DIR'] || File.join(Dir.home, '.config', 'planter')
-    end
-
-    ##
-    ## Build a configuration from template name
-    ##
-    ## @param      template  [String] The template name
-    ##
-    ## @return     [Hash] Configuration object
-    ##
-    def config=(template)
-      @template = template
-      Planter.variables ||= {}
-      FileUtils.mkdir_p(Planter.base_dir) unless File.directory?(Planter.base_dir)
-      base_config = File.join(Planter.base_dir, 'planter.yml')
-
-      if File.exist?(base_config)
-        @config = YAML.load(IO.read(base_config)).symbolize_keys
-      else
-        default_base_config = {
-          defaults: false,
-          git_init: false,
-          files: { '_planter.yml' => 'ignore' },
-          color: true,
-          preserve_tags: true
-        }
-        begin
-          File.open(base_config, 'w') { |f| f.puts(YAML.dump(default_base_config.stringify_keys)) }
-        rescue Errno::ENOENT
-          Planter.notify("Unable to create #{base_config}", :error)
-        end
-        @config = default_base_config.symbolize_keys
-        Planter.notify("New configuration written to #{base_config}, edit as needed.", :warn)
-      end
-
-      base_dir = File.join(Planter.base_dir, 'templates', @template)
-      unless File.directory?(base_dir)
-        notify("Template #{@template} does not exist", :error)
-        res = Prompt.yn('Create template directory', default_response: false)
-
-        raise Errors::InputError.new('Canceled') unless res
-
-        FileUtils.mkdir_p(base_dir)
-      end
-
-      load_template_config
-
-      config_array_to_hash(:files) if @config[:files].is_a?(Array)
-      config_array_to_hash(:replacements) if @config[:replacements].is_a?(Array)
-    rescue Psych::SyntaxError => e
-      raise Errors::ConfigError.new "Parse error in configuration file:\n#{e.message}"
     end
 
     ##
@@ -190,58 +170,6 @@ module Planter
     private
 
     ##
-    ## Load a template-specific configuration
-    ##
-    ## @return     [Hash] updated config object
-    ##
-    ## @api private
-    ##
-    def load_template_config
-      base_dir = File.join(Planter.base_dir, 'templates', @template)
-      config = File.join(base_dir, '_planter.yml')
-
-      unless File.exist?(config)
-        default_config = {
-          variables: [
-            key: 'var_key',
-            prompt: 'CLI Prompt',
-            type: '[string, float, integer, number, date]',
-            value: '(optional, force value, can include variables. Empty to prompt. For date type: today, now, etc.)',
-            default: '(optional default value, leave empty or remove key for no default)',
-            min: '(optional, for number type set a minimum value)',
-            max: '(optional, for number type set a maximum value)'
-          ],
-          git_init: false,
-          files: {
-            '*.tmp' => 'ignore',
-            '*.bak' => 'ignore',
-            '.DS_Store' => 'ignore'
-          }
-        }
-        FileUtils.mkdir_p(base_dir)
-        File.open(config, 'w') { |f| f.puts(YAML.dump(default_config.stringify_keys)) }
-        notify("New configuration written to #{config}, please edit.", :warn)
-        Process.exit 0
-      end
-      @config = @config.deep_merge(YAML.load(IO.read(config)).symbolize_keys)
-    end
-
-    ##
-    ## Convert an errant array to a hash
-    ##
-    ## @param      key   [Symbol] The key in @config to convert
-    ##
-    ## @api private
-    ##
-    def config_array_to_hash(key)
-      files = {}
-      @config[key].each do |k, v|
-        files[k] = v
-      end
-      @config[key] = files
-    end
-
-    ##
     ## Process :files in config into regex pattern/operator pairs
     ##
     ## @return     [Hash] { regex => operator } hash
@@ -250,7 +178,7 @@ module Planter
     ##
     def process_patterns
       patterns = {}
-      @config[:files].each do |file, oper|
+      @config.files.each do |file, oper|
         pattern = Regexp.new(".*?/#{file.to_s.sub(%r{^/}, '').to_rx}$")
         operator = oper.normalize_operator
         patterns[pattern] = operator

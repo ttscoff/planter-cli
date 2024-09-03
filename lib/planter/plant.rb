@@ -3,6 +3,8 @@
 module Planter
   # Primary class
   class Plant
+    attr_reader :config
+
     ##
     ## Initialize a new Plant object
     ##
@@ -11,20 +13,24 @@ module Planter
     ##
     def initialize(template = nil, variables = nil)
       Planter.variables = variables if variables.is_a?(Hash)
-      Planter.config = template if template
+      # Planter.config = template if template
+      template ||= Planter.template
+      die('No template specified', :config) unless template
 
-      @basedir = File.join(Planter.base_dir, 'templates', Planter.template)
+      @config = Planter::Config.new
+
+      @basedir = File.join(Planter.base_dir, 'templates', @config.template)
       @target = Planter.target || Dir.pwd
 
-      @git = Planter.config[:git_init] || false
+      @git = @config.git_init || false
       @debug = Planter.debug
-      @repo = Planter.config[:repo] || false
+      @repo = @config.repo || false
 
       # Coerce any existing variables (like from the command line) to the types
       # defined in configuration
       coerced = {}
       Planter.variables.each do |k, v|
-        cfg_var = Planter.config[:variables].select { |var| k = var[:key] }
+        cfg_var = @config.variables.select { |var| k = var[:key] }
         next unless cfg_var.count.positive?
 
         var = cfg_var.first
@@ -34,7 +40,7 @@ module Planter
       coerced.each { |k, v| Planter.variables[k] = v }
 
       # Ask user for any variables not already defined
-      Planter.config[:variables].each do |var|
+      @config.variables.each do |var|
         key = var[:key].to_var
         next if Planter.variables.keys.include?(key)
 
@@ -94,26 +100,26 @@ module Planter
     def git_pull
       Planter.spinner.update(title: 'Pulling git repo')
 
-      raise Errors::GitError.new('`git` executable not found') unless TTY::Which.exist?('git')
+      die('`git` executable not found', :git) unless TTY::Which.exist?('git')
 
       pwd = Dir.pwd
       @repo = expand_repo(@repo)
 
       if File.exist?(repo_dir)
         Dir.chdir(repo_dir)
-        raise Errors::GitError.new("Directory #{repo_dir} exists but is not git repo") unless File.exist?('.git')
+        die("Directory #{repo_dir} exists but is not git repo", :git) unless File.exist?('.git')
 
         res = `git pull`
-        raise Errors::GitError.new("Error pulling #{@repo}:\n#{res}") unless $?.success?
+        die("Error pulling #{@repo}:\n#{res}", :git) unless $?.success?
       else
         Dir.chdir(@basedir)
         res = `git clone "#{@repo}" "#{repo_dir}"`
-        raise Errors::GitError.new("Error cloning #{@repo}:\n#{res}") unless $?.success?
+        die("Error cloning #{@repo}:\n#{res}", :git) unless $?.success?
       end
       Dir.chdir(pwd)
       @basedir = repo_dir
     rescue StandardError => e
-      raise Errors::GitError.new("Error pulling #{@repo}:\n#{e.message}")
+      die("Error pulling #{@repo}:\n#{e.message}", :git)
     end
 
     ##
@@ -139,7 +145,7 @@ module Planter
       end
 
       if @git
-        raise Errors::GitError.new('`git` executable not found') unless TTY::Which.exist?('git')
+        die('`git` executable not found', :git) unless TTY::Which.exist?('git')
 
         Planter.spinner.update(title: 'Initializing git repo')
         res = add_git
@@ -149,10 +155,10 @@ module Planter
         end
       end
 
-      if Planter.config[:script]
+      if @config.script
         Planter.spinner.update(title: 'Running script')
 
-        scripts = Planter.config[:script]
+        scripts = @config.script
         scripts = [scripts] if scripts.is_a?(String)
         scripts.each do |script|
           s = Planter::Script.new(@basedir, Dir.pwd, script)

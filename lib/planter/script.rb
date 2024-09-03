@@ -14,12 +14,12 @@ module Planter
     ##
     def initialize(template_dir, output_dir, script)
       found = find_script(template_dir, script)
-      raise ScriptError.new("Script #{script} not found") unless found
+      die("Script #{script} not found", :script) unless found
 
       @script = found
       make_executable
 
-      raise ScriptError.new("Output directory #{output_dir} not found") unless File.directory?(output_dir)
+      die("Output directory #{output_dir} not found", :script) unless File.directory?(output_dir)
 
       @template_directory = template_dir
       @directory = output_dir
@@ -63,7 +63,7 @@ module Planter
       stdout, stderr, status = Open3.capture3(@script, @template_directory, @directory)
       Planter.notify("STDOUT:\n#{stdout}", :debug) unless stdout.empty?
       Planter.notify("STDERR:\n#{stderr}", :debug) unless stderr.empty?
-      raise ScriptError.new("Error running #{@script}") unless status.success?
+      die("Error running #{@script}", :script) unless status.success?
 
       true
     end

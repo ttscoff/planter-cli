@@ -172,7 +172,7 @@ module Planter
           m['default'].apply_var_names
         else
           # Retrieve the default value for the variable from the configuration
-          vars = Planter.config[:variables].filter { |v| v[:key] == m['varname'] }
+          vars = Planter.config.variables.filter { |v| v[:key] == m['varname'] }
           default = vars.first[:default] if vars.count.positive?
           if default.nil?
             m[0]
@@ -369,13 +369,13 @@ module Planter
     end
 
     ##
-    ## Apply regex replacements from @config[:replacements]
+    ## Apply regex replacements from Planter.config[:replacements]
     ##
     ## @return     [String] string with regexes applied
     ##
     def apply_regexes(regexes = nil)
       content = dup.clean_encode
-      regexes = regexes.nil? && Planter.config.key?(:replacements) ? Planter.config[:replacements] : regexes
+      regexes = regexes.nil? && Planter.config.key?(:replacements) ? Planter.config.replacements : regexes
 
       return self unless regexes
 
@@ -621,6 +621,15 @@ module Planter
       else
         gsub(/\((.)\)/, '{dw}({xbw}\1{dw}){xw}')
       end
+    end
+
+    #
+    # Test if a string has a parenthetical selector
+    #
+    # @return [Boolean] has selector
+    #
+    def has_selector?
+      self =~ /\(.\)/ ? true : false
     end
   end
 end

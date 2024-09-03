@@ -65,8 +65,15 @@ module Planter
       apply_tags(entry)
     end
 
+    #
+    # Apply tags to the target file from the source file
+    #
+    # @param [FileEntry] entry
+    #
+    # @return [Boolean] success
+    #
     def apply_tags(entry)
-      return unless Planter.config[:preserve_tags]
+      return unless Planter.config.preserve_tags
 
       Tag.copy(entry.file, entry.target) if File.exist?(entry.target)
     end

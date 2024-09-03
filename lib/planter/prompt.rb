@@ -60,7 +60,7 @@ module Planter
         Planter.notify("{dw}#{prompt} => {dy}#{res}{x}", :debug, newline: false)
         res
       rescue TTY::Reader::InputInterrupt
-        raise Errors::InputError.new('Canceled')
+        die('Canceled')
       end
 
       private
@@ -136,6 +136,8 @@ module Planter
       ## @return     [String] the single-line response
       ##
       def read_line(prompt: nil)
+        return @default if Planter.accept_defaults || ENV['PLANTER_DEBUG']
+
         prompt ||= @prompt
         default = @default ? " {bw}[#{@default}]" : ''
         Planter.notify("{by}#{prompt}#{default}", newline: false)
@@ -234,7 +236,7 @@ module Planter
     ##
     ## Choose from an array of multiple choices. Letter surrounded in
     ## parenthesis becomes character for response. Only one letter should be
-    ## specified and must be unique.
+    ## specified per choice and must be unique.
     ##
     ## @param      choices           [Array] The choices
     ## @param      prompt            [String] The prompt
@@ -259,6 +261,8 @@ module Planter
         keys = choices.to_options(numeric)
         values = choices.to_values.map(&:clean_value)
       end
+
+      die('Choice(s) without selector, please edit config') unless keys.all?(&:has_selector?)
 
       default = case default_response.to_s
                 when /^\d+$/
@@ -306,6 +310,8 @@ module Planter
       res.downcase!
 
       res = res.empty? ? default : res
+
+      return choice(choices, prompt, default_response: default_response) if res.nil? || res.empty?
 
       if res.to_i.positive?
         values[res.to_i - 1]

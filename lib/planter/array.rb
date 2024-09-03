@@ -13,6 +13,8 @@ module Planter
     ##
     def abbr_choices(default: nil)
       chars = join(' ').scan(/\((?:(.)\.?)\)/).map { |c| c[0] }
+      die('Array contains duplicates', :input) if chars.duplicates?
+
       out = String.new
       out << '{xdw}['
       out << chars.map do |c|
@@ -32,6 +34,8 @@ module Planter
     ## @return     [Array] Array of choices
     ##
     def to_options(numeric)
+      die('Array contains duplicates', :input) if duplicates?
+
       map.with_index do |c, i|
         # v = c.to_s.match(/\(?([a-z]|\d+\.?)\)?/)[1].strip
         if numeric
@@ -40,6 +44,11 @@ module Planter
           c
         end
       end
+    end
+
+    ## test if array has duplicates
+    def duplicates?
+      uniq.size != size
     end
 
     ## Find the index of a choice in an array of choices

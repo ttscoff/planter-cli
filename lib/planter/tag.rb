@@ -1,8 +1,22 @@
 # frozen_string_literal: true
 
 module Planter
+  #
+  # File tagging module
+  #
+  # @author Brett Terpstra <me@brettterpstra.com>
+  #
   module Tag
+    # File tagging class
     class << self
+      #
+      # Set tags on target file.
+      #
+      # @param target [String] path to target file
+      # @param tags [Array] Array of tags to set
+      #
+      # @return [Boolean] success
+      #
       def set(target, tags)
         return false unless TTY::Which.exist?('xattr')
 
@@ -36,6 +50,13 @@ module Planter
         res
       end
 
+      #
+      # Get tags on target file.
+      #
+      # @param target [String] target file path
+      #
+      # @return [Array] Array of tags
+      #
       def get(target)
         return false unless TTY::Which.exist?('xattr')
 
@@ -49,6 +70,14 @@ module Planter
         tags
       end
 
+      #
+      # Copy tags from one file to another.
+      #
+      # @param source [String] path to source file
+      # @param target [String] path to target file
+      #
+      # @return [Boolean] success
+      #
       def copy(source, target)
         return false unless TTY::Which.exist?('xattr')
 
@@ -67,6 +96,15 @@ module Planter
 
       private
 
+      #
+      # Set tags on target file.
+      #
+      # @param target [String] file path
+      # @param tags   [Array] Array of tags
+      #
+      # @return [Boolean] success
+      #
+      # @api private
       def set_tags(target, tags)
         return false unless TTY::Which.exist?('xattr')
 

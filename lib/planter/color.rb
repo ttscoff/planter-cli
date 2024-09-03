@@ -108,6 +108,12 @@ module Planter
         Color.template(self)
       end
 
+      ## Remove template codes from a string
+      ## @return [String] uncolored string
+      def strip_template
+        gsub(/(?<!\\)\{(\w+)\}/i, '')
+      end
+
       ##
       ## Extract the longest valid %color name from a string.
       ##
@@ -243,7 +249,7 @@ module Planter
       ##
       def template(input)
         input = input.join(' ') if input.is_a? Array
-        return input.gsub(/(?<!\\)\{(\w+)\}/i, '') unless Color.coloring?
+        return input.strip_template unless Color.coloring?
 
         input = input.gsub(/(?<!\\)\{((?:[fb]g?)?#[a-f0-9]{3,6})\}/i) do
           hex = Regexp.last_match(1)

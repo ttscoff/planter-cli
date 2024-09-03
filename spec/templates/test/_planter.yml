@@ -5,5 +5,7 @@ variables:
   type: string
   default: "bollocks and beans"
 git_init: false
+script:
+  - plant.sh
 files:
   "*.tmp": ignore

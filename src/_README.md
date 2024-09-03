@@ -146,9 +146,9 @@ The value after the operator doesn't need to be quoted, anything after the opera
 
 Logic can be used on multiple lines like the example above, or on a single line (useful for filenames):
 
-```
-%%project%%.%%if language == javascript%%js%%else if language == ruby%%rb%%else%%sh%%endif%%
-```
+
+    %%project%%.%%if language == javascript%%js%%else if language == ruby%%rb%%else%%sh%%endif%%
+
 
 Content within if/else blocks can contain variables.
 
@@ -183,7 +183,7 @@ Merged content
 
 By default files that already exist in the destination directory are not overwritten, and merging allows you to add missing parts to a Rakefile or Makefile, for example.
 
-If `ask` is specified, a memu will be provided on the command line asking how to handle a file. If the file doesn't already exist, you will be asked only whether to copy the file or not. If it does exist, `overwrite` and `merge` options will be added.
+If `ask` is specified, a menu will be provided on the command line asking how to handle a file. If the file doesn't already exist, you will be asked only whether to copy the file or not. If it does exist, `overwrite` and `merge` options will be added.
 
 ### Regex replacements
 
@@ -229,7 +229,6 @@ Variables can be passed on the command line with `--var KEY:VALUE`. This flag ca
 ## Documentation
 
 - [YARD documentation][RubyDoc] is hosted by RubyDoc.info.
-- [Interactive documentation][Omniref] is hosted by Omniref.
 
 [RubyDoc]: http://www.rubydoc.info/gems/planter-cli
 

@@ -30,14 +30,14 @@ describe Planter::Script do
       allow(File).to receive(:exist?).with(script_path).and_return(false)
       expect do
         Planter::Script.new(template_dir, output_dir, script_name)
-      end.to raise_error(ScriptError)
+      end.to raise_error(SystemExit)
     end
 
     it 'raises an error if output directory is not found' do
       allow(File).to receive(:directory?).with(output_dir).and_return(false)
       expect do
         Planter::Script.new(template_dir, output_dir, script_name)
-      end.to raise_error(ScriptError)
+      end.to raise_error(SystemExit)
     end
   end
 
@@ -60,7 +60,7 @@ describe Planter::Script do
       expect do
         script = Planter::Script.new(template_dir, output_dir, script_name)
         script.find_script(template_dir, script_name)
-      end.to raise_error(ScriptError)
+      end.to raise_error(SystemExit)
     end
   end
 
@@ -74,7 +74,7 @@ describe Planter::Script do
       script = Planter::Script.new(template_dir, output_dir, script_name_fail)
       expect do
         script.run
-      end.to raise_error(ScriptError)
+      end.to raise_error(SystemExit)
     end
   end
 end

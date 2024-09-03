@@ -79,8 +79,9 @@ opts.parse!
 ##
 def list_vars(template)
   puts "#{template} variables:"
-  Planter.config = template
-  Planter.config[:variables].sort_by { |v| v[:key].to_var }.each do |var|
+  Planter.template = template
+  @config = Planter::Config.new
+  @config.variables.sort_by { |v| v[:key].to_var }.each do |var|
     title = var[:prompt] || var[:key]
     var_type = var[:type].normalize_type || :string
     default = var[:value] || var[:default]
@@ -101,12 +102,12 @@ elsif options[:help]
   end
   Process.exit 0
 elsif ARGV.count.zero?
-  raise Planter::Errors::ArgumentError.new 'Template argument required'
+  die('Template argument required', :argument)
 end
 
 ARGV.each do |template|
   # Planter.spinner.update(title: 'Initializing configuration')
-  Planter.config = template
+  Planter.template = template
   app = Planter::Plant.new
   app.plant
 end
