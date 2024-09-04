@@ -9,10 +9,15 @@ module Planter
     ##
     ## @example    ["(c)hoice", "(o)ther"].abbr_choices #=> "[c/o]"
     ##
-    ## @param      default  [String] The color templated output string
+    ## @param      default  [String] The (unprocessed) color templated output string
     ##
     def abbr_choices(default: nil)
+      return default.nil? ? '' : "{xdw}[{xbc}#{default}{dw}]{x}" if all? { |c| c.to_i.positive? }
+
       chars = join(' ').scan(/\((?:(.)\.?)\)/).map { |c| c[0] }
+
+      return default.nil? ? '' : "{xdw}[{xbc}#{default}{dw}]{x}" if chars.all? { |c| c.to_i.positive? }
+
       die('Array contains duplicates', :input) if chars.duplicates?
 
       out = String.new

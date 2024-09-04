@@ -20,6 +20,7 @@ require_relative 'planter/version'
 require_relative 'planter/hash'
 require_relative 'planter/array'
 require_relative 'planter/symbol'
+require_relative 'planter/numeric'
 require_relative 'planter/file'
 require_relative 'planter/tag'
 require_relative 'planter/color'
@@ -118,7 +119,7 @@ module Planter
                 '{bw}'
               end
       out = "#{color}#{string}{x}"
-      out = out.gsub(/\[(.*?)\]/, "{by}\\1{x}#{color}")
+      # out = out.gsub(/\[(.*?)\]/, "{by}\\1{x}#{color}")
       out = "\n#{out}" if newline
 
       spinner.update(title: 'ERROR') if exit_code
@@ -126,7 +127,9 @@ module Planter
 
       above_spinner ? spinner.log(out.x) : warn(out.x)
 
-      exit(exit_code) if exit_code && !ENV['PLANTER_IRB']
+      if exit_code && $stdout.isatty && (ENV['PLANTER_RSPEC'] == 'true' || ENV['PLANTER_DEBUG'] != 'true')
+        exit(exit_code)
+      end
 
       true
     end
@@ -180,7 +183,7 @@ module Planter
       patterns = {}
       @config.files.each do |file, oper|
         pattern = Regexp.new(".*?/#{file.to_s.sub(%r{^/}, '').to_rx}$")
-        operator = oper.normalize_operator
+        operator = oper.apply_operator_logic(Planter.variables)
         patterns[pattern] = operator
       end
       patterns

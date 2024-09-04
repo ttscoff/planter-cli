@@ -138,11 +138,14 @@ module Planter
     MOD_RX = '(?<mod>
                   (?::
                     (
-                      l(?:ow(?:er)?)?)?|
-                      u(?:p(?:per)?)?|
+                      l(?:ow(?:er(case)?)?)?)?|
+                      d(?:own(?:case)?)?|
+                      u(?:p(?:per(case)?)?)?|upcase|
                       c(?:ap(?:ital(?:ize)?)?)?|
                       t(?:itle)?|
                       snake|camel|slug|
+                      fl|first_letter|
+                      fw|first_word|
                       f(?:ile(?:name)?
                     )?
                   )*
@@ -204,8 +207,7 @@ module Planter
     def apply_logic(variables = nil)
       variables = variables.nil? ? Planter.variables : variables
 
-      gsub(/%%if .*?%%.*?%%end(if)?%%/mi) do |construct|
-        res = false
+      gsub(/%%if .*?%%.*?%%end( ?if)?%%/mi) do |construct|
         # Get the condition and the content
         output = construct.match(/%%else%%(.*?)%%end/m) ? Regexp.last_match(1) : ''
 
@@ -213,78 +215,126 @@ module Planter
                                        /%%(?<statement>(?:els(?:e )?)?if) (?<condition>.*?)%%(?<content>.*?)(?=%%)/mi).map do
           Regexp.last_match
         end
-        conditions.each do |condition|
-          variable, operator, value = condition['condition'].split(/ +/, 3)
-          value.strip_quotes!
-          variable = variable.to_var
-          negate = false
-          if operator =~ /^!/
-            operator = operator[1..-1]
-            negate = true
-          end
-          operator = case operator
-                     when /^={1,2}/
-                       :equal
-                     when /^=~/
-                       :matches_regex
-                     when /\*=/
-                       :contains
-                     when /\^=/
-                       :starts_with
-                     when /\$=/
-                       :ends_with
-                     when />/
-                       :greater_than
-                     when /</
-                       :less_than
-                     when />=/
-                       :greater_than_or_equal
-                     when /<=/
-                       :less_than_or_equal
-                     else
-                       :equal
-                     end
 
-          comp = variables[variable.to_var].to_s
-
-          res = case operator
-                when :equal
-                  comp =~ /^#{value}$/i
-                when :matches_regex
-                  comp =~ Regexp.new(value.gsub(%r{^/|/$}, ''))
-                when :contains
-                  comp =~ /#{value}/i
-                when :starts_with
-                  comp =~ /^#{value}/i
-                when :ends_with
-                  comp =~ /#{value}$/i
-                when :greater_than
-                  comp > value.to_f
-                when :less_than
-                  comp < value.to_f
-                when :greater_than_or_equal
-                  comp >= value.to_f
-                when :less_than_or_equal
-                  comp <= value.to_f
-                else
-                  false
-                end
-          res = !res if negate
-
-          next unless res
-
-          Planter.notify("Condition matched: #{comp} #{negate ? 'not ' : ''}#{operator} #{value}", :debug)
-          output = condition['content']
-          break
-        end
-
-        output
+        apply_conditions(conditions, variables, output)
       end
     end
 
     ## Destructive version of #apply_logic
     def apply_logic!(variables)
       replace apply_logic(variables)
+    end
+
+    ##
+    ## Apply operator logic to a string. Operators are defined as
+    ## :copy, :overwrite, :ignore, or :merge. Logic can be if/else
+    ## constructs or inline operators.
+    ##
+    ## @example    "var = 1; if var == 1:copy; else: ignore" #=> :copy
+    ## @example    "var = 2; copy if var == 1 else ignore" #=> :ignore
+    ##
+    ## @param variables [Hash] Hash of variables (default: Planter.variables)
+    ##
+    def apply_operator_logic(variables = nil)
+      variables = variables.nil? ? Planter.variables : variables
+      op_rx = ' *(?<content>c(?:opy)?|o(?:ver(?:write)?)?|i(?:gnore)?|m(?:erge)?)? *'
+
+      strip.gsub(/^if .*?(?:end(?: ?if)?|$)/mi) do |construct|
+        # Get the condition and the content
+        output = construct.match(/else:#{op_rx}/m) ? Regexp.last_match(1) : ''
+
+        conditions = construct.to_enum(:scan,
+                                       /(?<statement>(?:els(?:e )?)?if) +(?<condition>.*?):#{op_rx}(?=;|$)/mi).map do
+          Regexp.last_match
+        end
+
+        apply_conditions(conditions, variables, output)
+      end.gsub(/^#{op_rx} +if .*?(end( ?if)?|$)/mi) do |construct|
+        # Get the condition and the content
+        output = construct.match(/else[; ]+(#{op_rx})/m) ? Regexp.last_match(1) : :ignore
+        condition = construct.match(/^#{op_rx}(?<statement>if) +(?<condition>.*?)(?=;|$)/mi)
+
+        apply_conditions([condition], variables, output)
+      end.normalize_operator
+    end
+
+    ##
+    ## Apply conditions
+    ##
+    ## @param conditions [Array<MatchData>] Array of conditions ['statement', 'condition', 'content']
+    ## @param variables [Hash] Hash of variables
+    ## @param output [String] Output string
+    ##
+    ## @return [String] Output string
+    ##
+    def apply_conditions(conditions, variables, output)
+      res = false
+      conditions.each do |condition|
+        variable, operator, value = condition['condition'].split(/ +/, 3)
+        value.strip_quotes!
+        variable = variable.to_var
+        negate = false
+        if operator =~ /^!/
+          operator = operator[1..-1]
+          negate = true
+        end
+        operator = case operator
+                   when /^={1,2}/
+                     :equal
+                   when /^=~/
+                     :matches_regex
+                   when /\*=/
+                     :contains
+                   when /\^=/
+                     :starts_with
+                   when /\$=/
+                     :ends_with
+                   when />/
+                     :greater_than
+                   when /</
+                     :less_than
+                   when />=/
+                     :greater_than_or_equal
+                   when /<=/
+                     :less_than_or_equal
+                   else
+                     :equal
+                   end
+
+        comp = variables[variable.to_var].to_s
+
+        res = case operator
+              when :equal
+                comp =~ /^#{value}$/i
+              when :matches_regex
+                comp =~ Regexp.new(value.gsub(%r{^/|/$}, ''))
+              when :contains
+                comp =~ /#{value}/i
+              when :starts_with
+                comp =~ /^#{value}/i
+              when :ends_with
+                comp =~ /#{value}$/i
+              when :greater_than
+                comp > value.to_f
+              when :less_than
+                comp < value.to_f
+              when :greater_than_or_equal
+                comp >= value.to_f
+              when :less_than_or_equal
+                comp <= value.to_f
+              else
+                false
+              end
+        res = res ? true : false
+        res = !res if negate
+
+        next unless res
+
+        Planter.notify("Condition matched: #{comp} #{negate ? 'not ' : ''}#{operator} #{value}", :debug)
+        output = condition['content']
+        break
+      end
+      output
     end
 
     ##
@@ -326,6 +376,8 @@ module Planter
             if m['mod']
               mods = m['mod']&.split(/:/)
               mods&.each do |mod|
+                next if mod.nil? || mod.empty?
+
                 v = v.apply_mod(mod.normalize_mod)
               end
             end
@@ -366,6 +418,13 @@ module Planter
         content.apply_mod!(mod.normalize_mod)
       end
       content
+    end
+
+    ##
+    ## Apply all logic, variables, and regexes to a string
+    ##
+    def apply_all
+      apply_logic.apply_variables.apply_regexes
     end
 
     ##
@@ -455,6 +514,10 @@ module Planter
         snake_case
       when :camel_case
         camel_case
+      when :first_letter
+        split('')[0]
+      when :first_word
+        split(/[ !,?;:]+/)[0]
       else
         self
       end
@@ -481,7 +544,7 @@ module Planter
     ##
     def normalize_mod
       case self
-      when /^(f|slug)/
+      when /^(file|slug)/
         :slug
       when /^cam/
         :camel_case
@@ -489,10 +552,14 @@ module Planter
         :snake_case
       when /^u/
         :uppercase
-      when /^l/
+      when /^[ld]/
         :lowercase
       when /^[ct]/
         :title_case
+      when /^(fl|first_letter)/
+        :first_letter
+      when /^(fw|first_word)/
+        :first_word
       end
     end
 

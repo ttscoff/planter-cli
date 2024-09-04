@@ -40,6 +40,25 @@ describe Planter::Prompt::Question do
     end
   end
 
+  describe "#ask with date type and inline date format" do
+    it 'asks a date question' do
+      question[:type] = :date
+      question[:value] = "today '%Y'"
+      q = described_class.new(question)
+      expect(q.ask).to eq(Date.today.strftime('%Y'))
+    end
+  end
+
+  describe "#ask with date type and date format config" do
+    it 'asks a date question' do
+      question[:type] = :date
+      question[:date_format] = '%Y'
+      question[:value] = "today"
+      q = described_class.new(question)
+      expect(q.ask).to eq(Date.today.strftime('%Y'))
+    end
+  end
+
   describe "#ask with choices" do
     it 'asks a question with choices' do
       question[:type] = :string

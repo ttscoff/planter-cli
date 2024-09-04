@@ -165,6 +165,9 @@ module Planter
     ## @return     [Boolean] success
     ##
     def copy_file(file, overwrite: false)
+      # If the target file already exists and overwrite is true,
+      # or Planter.overwrite is true, then delete the target file
+      FileUtils.rm_rf(file.target) if (overwrite || Planter.overwrite) && File.exist?(file.target)
       # Check if the target file already exists
       # If it does and overwrite is true, or Planter.overwrite is true,
       # or if the file doesn't exist, then copy the file
@@ -172,7 +175,7 @@ module Planter
         # Make sure the target directory exists
         FileUtils.mkdir_p(File.dirname(file.target))
         # Copy the file if it isn't a directory
-        FileUtils.cp(file.file, file.target) unless File.directory?(file.file)
+        FileUtils.cp_r(file.file, file.target) unless File.directory?(file.file)
         # Log a message to the console
         Planter.notify("[Copied] #{file.file} => #{file.target}", :debug, above_spinner: true)
         # Return true to indicate success

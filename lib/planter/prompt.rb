@@ -21,9 +21,10 @@ module Planter
         @min = question[:min]&.to_f || 1.0
         @max = question[:max]&.to_f || 10.0
         @prompt = question[:prompt] || nil
-        @default = question[:default]
+        @default = question[:default]&.to_s&.apply_all || nil
         @value = question[:value]
         @choices = question[:choices] || []
+        @date_format = question[:date_format] || nil
         @gum = false # TTY::Which.exist?('gum')
       end
 
@@ -35,7 +36,7 @@ module Planter
       def ask
         return nil if @prompt.nil?
 
-        return @value.to_s.apply_variables.apply_regexes.coerce(@type) if @value && @type != :date
+        return @value.to_s.apply_all.coerce(@type) if @value && @type != :date
 
         res = case @type
               when :choice
@@ -58,7 +59,7 @@ module Planter
                 read_line
               end
         Planter.notify("{dw}#{prompt} => {dy}#{res}{x}", :debug, newline: false)
-        res
+        res.to_s.apply_all
       rescue TTY::Reader::InputInterrupt
         die('Canceled')
       end
@@ -73,7 +74,7 @@ module Planter
       ## @return     [Number] numeric response
       ##
       def read_number(integer: false)
-        default = @default ? " {bw}[#{@default}]" : ''
+        default = @default ? " {xw}[{xbw}#{@default}{xw}]" : ''
         Planter.notify("{by}#{@prompt} {xc}({bw}#{@min}{xc}-{bw}#{@max}{xc})#{default}")
 
         res = @gum ? read_number_gum : read_line_tty
@@ -95,15 +96,20 @@ module Planter
         default = @value || @default
         return nil unless default
 
+        if default =~ /'.*?'/
+          @date_format = default.match(/'(.*?)'/)[1].strip
+          default = default.gsub(/'.*?'/, '').strip
+        end
+
         case default
         when /^(no|ti)/
-          Time.now.strftime('%Y-%m-%d %H:%M')
+          Time.now.strftime(@date_format || '%Y-%m-%d %H:%M')
         when /^(to|da)/
-          Time.now.strftime('%Y-%m-%d')
+          Time.now.strftime(@date_format || '%Y-%m-%d')
         when /^%/
-          Time.now.strftime(@default)
+          Time.now.strftime(default)
         else
-          Chronic.parse(default).strftime('%Y-%m-%d')
+          Chronic.parse(default).strftime(@date_format || '%Y-%m-%d')
         end
       end
 
@@ -123,7 +129,7 @@ module Planter
         line = @gum ? read_line_gum : read_line_tty
         return default unless line
 
-        Chronic.parse(line).strftime('%Y-%m-%d')
+        Chronic.parse(line).strftime(@date_format || '%Y-%m-%d')
       end
 
       ##

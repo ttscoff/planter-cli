@@ -7,6 +7,33 @@
 
 Plant a directory structure and files using templates.
 
+<!--GITHUB-->
+- [Planter](#planter)
+  - [Installation](#installation)
+  - [Configuration](#configuration)
+    - [Scripts](#scripts)
+    - [Templates](#templates)
+      - [Multiple choice type](#multiple-choice-type)
+    - [File-specific handling](#file-specific-handling)
+      - [If/then logic for file handling](#ifthen-logic-for-file-handling)
+    - [Regex replacements](#regex-replacements)
+    - [Finder Tags](#finder-tags)
+    - [Placeholders](#placeholders)
+      - [Default values in template strings](#default-values-in-template-strings)
+      - [Modifiers](#modifiers)
+      - [If/then logic](#ifthen-logic)
+  - [Usage](#usage)
+  - [Documentation](#documentation)
+  - [Development and Testing](#development-and-testing)
+    - [Source Code](#source-code)
+    - [Requirements](#requirements)
+    - [Rake](#rake)
+    - [Guard](#guard)
+  - [Contributing](#contributing)
+  - [License](#license)
+  - [Warranty](#warranty)
+<!--END GITHUB-->
+
 ## Installation
 
     gem install planter-cli
@@ -38,7 +65,7 @@ Scripts can be executable files in any language, and receive the template direct
 
 Templates are directories found in `~/.config/planter/templates/[TEMPLATE_NAME]`. All files and directories inside of these template directories are copied when that template is called. Filenames, directory names, and file contents can all use template placeholders.
 
-Template placeholders are defined with `%%KEY%%`, where key is the key defined in the `variables` section of the configuration. `%%KEY%%` placeholders can be used in directory/file names, and in the file contents. These work in any plain text or RTF format document, including XML, so they can be used in things like Scrivener templates and MindNode files as well.
+Template placeholders are defined with `%%KEY%%`, where key is the key defined in the `variables` section of the configuration. `%%KEY%%` placeholders can be used in directory/file names, and in the file contents. These work in any plain text or RTF format document, including XML, so they can be used in things like Scrivener templates and MindNode files as well. See the subsections for info on default values and modifiers for template placeholders.
 
 Each template contains a `_planter.yml` file that defines variables and other configuration options. The file format for all configuration files is [YAML](https://yaml.org/spec/1.2.2/).
 
@@ -49,11 +76,14 @@ variables:
   - key: var_key
     prompt: Prompt text
     type: string # [string,paragraph,float,integer,number,date,choice] defaults to string
-    # value: (force value, string can include %%variables%% and regexes will be replaced. For date type can be today, time, now, etc.)
+    value: # (force value, string can include %%variables%% and regexes will be replaced. For date type can be today, time, now, etc.)
     default: Untitled
     min: 1
     max: 5
+    date_format: "%Y-%m-%d" # can be any strftime format, will be applied to any date type
 ```
+
+For the date type, value can be `today`, `now`, `tomorrow`, `last thursday`, etc. and natural language will be converted to a time. The formatting will be determined automatically based on the type of the value, e.g. "now" gets a time string, but "today" just gets a YYYY-mm-dd string. This can be modified using the `date_format` key, which accepts any [strftime](https://www.fabriziomusacchio.com/blog/2021-08-15-strftime_Cheat_Sheet/) value. You can also include a date format string in single parenthesis after a natural language date value, e.g. `value: "now 'This year: %Y'"`.
 
 A configuration can include additional keys:
 
@@ -66,9 +96,6 @@ replacements: # Dictionary of pattern/replacments for regex substitution, see [R
 repo: # If a repository URL is provided, it will be pulled and duplicated instead of copying an existing file structure
 ```
 
-#### Default values in template strings
-
-In a template you can add a default value for a placholder by adding `%default value` to it. For example, `%%project%Default Project%%` will set the placeholder to `Default Project` if the variable value matches the default value in the configuration (or doesn't exist). This allows you to accept the default on the command line but have a different value inserted in the template. To use another variable in its place, use `$KEY` in the placeholder, e.g. `%%project%$title%%` will replace the `project` key with the value of `title` if the default is selected. Modifiers can be used on either side of the `%`, e.g. `%%project%$title:snake%%`.
 
 #### Multiple choice type
 
@@ -108,7 +135,114 @@ variables:
       - 1. zsh
 ```
 
-If the choice starts with a number (as above), then a numeric list will be generated and typing the associated index number will accept that choice. Numeric lists are automatically numbered, so the preceding digit doesn't matter, as long as it's a digit. In this case a default can be defined with an integer (in the `defaults:` key) for its placement in the list (starting with 1), and parenthesis aren't required.
+If the choice starts with a number (as above), then a numeric list will be generated and typing the associated index number will accept that choice. Numeric lists are automatically numbered, so the preceding digit doesn't matter, as long as it's a digit, and only the first item needs a digit to trigger numbering. In this case a default can be defined with an integer (in the `defaults:` key) for its placement in the list (starting with 1), and parenthesis aren't required.
+
+`value:` and `default:` can include previous variables, with modifiers:
+
+```yaml
+- variables:
+  - key: language
+    prompt: Programming language
+    type: choice
+    default: 2
+    choices:
+      - 1. ruby
+      - javascript
+      - python
+      - bash
+      - zsh
+  - key: shebang
+    prompt: Shebang line
+    type: choice
+    default: "%%language:first_letter:lowercase%%"
+    choices:
+      (r)uby: "#! /usr/bin/env ruby"
+      (j)avascript: "#! /usr/bin/env node"
+      (p)ython: "#! /usr/bin/env python"
+      (b)ash: "#! /bin/bash"
+      (z)sh: "#! /bin/zsh"
+```
+
+The above would define the `language` variable first, accepting `javascript` as default, then when displaying the menu for `shebang`, the language variable would have its first letter lowercased and set as the default option for the menu.
+
+### File-specific handling
+
+A `files` dictionary can specify how to handle specific files. Options are `copy`, `overwrite`, `merge`, or `ask`. The key for each entry is a filename or glob that matches the source filename (accounting for template variables if applicable):
+
+```yaml
+files:
+  "*.py": merge
+  "%%title%%.md": overwrite
+```
+
+Filenames can include wildcards (`*`, `?`), and Bash-ish globbing (`[0-9]`, `[a-z]`, `{one,two,three}`).
+
+If `merge` is specified, then the source file is scanned for merge comments and those are merged if they don't exist in the copied/existing file. If no merge comments are defined, then the entire contents of the source file are appended to the destination file (unless the file already matches the source). Merge comments start with `merge` and end with `/merge` and can have any comment syntax preceding them, for example:
+
+```
+// merge
+Merged content
+// /merge
+```
+
+Or
+
+```
+# merge
+Merged content
+# /merge
+```
+
+By default files that already exist in the destination directory are not overwritten, and merging allows you to add missing parts to a Rakefile or Makefile, for example.
+
+If `ask` is specified, a menu will be provided on the command line asking how to handle a file. If the file doesn't already exist, you will be asked only whether to copy the file or not. If it does exist, `overwrite` and `merge` options will be added.
+
+#### If/then logic for file handling
+
+The operation for a file match can be an if/then statement. There are two formats for this.
+
+First, you can simply write `OPERATION if VARIABLE COMP VALUE`, e.g. `copy if language == ruby`. This can have an `else` statement: `overwrite if language == ruby else copy`.
+
+You can also format it as `if VARIABLE COMP VALUE: OPERATION; else: OPERATION`. This format allows `else if` statements, e.g. `if language == perl: copy;else if language == ruby: overwrite; else: ignore`.
+
+Planter's if/then parsing does not handle parenthetical or boolean operations.
+
+### Regex replacements
+
+In addition to manually-placed template variables, you can also specify regular expressions for replacement. The `replacements` dictionary is a set of key/value pairs with the regex pattern as the key, and the replacement as the value. Both should be quoted in almost all circumstances.
+
+```yaml
+replacements:
+  "Planter": "%%title:cap%%"
+  "(main|app)\.js": "%%script:lower%%.js"
+```
+
+Replacements are performed on both file/directory names and file contents. This is especially handy when the source of the plant is a Git repo, allowing the replacement of elements without having to create %%templated%% filenames and contents.
+
+### Finder Tags
+
+If `preserve_tags` is set to `true` in the config (either base or template), then existing Finder tags on the file or folder will be copied to the new file when a template is planted.
+
+### Placeholders
+
+Placeholders are `%%VARIABLE%%` strings used in filenames and within the content of the files. At their most basic, this would just look like `%%project_name%%`. But you can supply default values, string modifiers, and even if/then logic.
+
+#### Default values in template strings
+
+In a template you can add a default value for a placholder by adding `%default value` to it. For example, `%%project%Default Project%%` will set the placeholder to `Default Project` if the variable value matches the default value in the configuration (or doesn't exist). This allows you to accept the default on the command line but have a different value inserted in the template. To use another variable in its place, use `$KEY` in the placeholder, e.g. `%%project%$title%%` will replace the `project` key with the value of `title` if the default is selected. Modifiers can be used on either side of the `%`, e.g. `%%project%$title:snake%%`.
+
+#### Modifiers
+
+A `%%variable%%` in a template can include modifiers that affect the output of the variable. These are added as `%%variable:MODIFIER%%` and multiple modifiers can be strung together, e.g. `%%language:lowercase:first_letter%%`. The available modifiers are (listed with available abbreviations):
+
+- `snake` (`s`): snake_case the value
+- `camel` (`cam`): camelCase the value
+- `upper` (`u`): UPPERCASE the value
+- `lower` (`l`, `d`): lowercase the value
+- `title` (`t`): Title Case The Value
+- `slug` or `file` (`sl`): slug-format-the-value
+- `first_letter` (`fl`): Extract the first letter from the value
+- `first_word` (`fw`): Extract the first word from the value
 
 #### If/then logic
 
@@ -150,56 +284,7 @@ Logic can be used on multiple lines like the example above, or on a single line 
     %%project%%.%%if language == javascript%%js%%else if language == ruby%%rb%%else%%sh%%endif%%
 
 
-Content within if/else blocks can contain variables.
-
-
-### File-specific handling
-
-A `files` dictionary can specify how to handle specific files. Options are `copy`, `overwrite`, `merge`, or `ask`. The key for each entry is a filename or glob that matches the source filename (accounting for template variables if applicable):
-
-```yaml
-files:
-  "*.py": merge
-  "%%title%%.md": overwrite
-```
-
-Filenames can include wildcards (`*`, `?`), and Bash-ish globbing (`[0-9]`, `[a-z]`, `{one,two,three}`).
-
-If `merge` is specified, then the source file is scanned for merge comments and those are merged if they don't exist in the copied/existing file. If no merge comments are defined, then the entire contents of the source file are appended to the destination file (unless the file already matches the source). Merge comments start with `merge` and end with `/merge` and can have any comment syntax preceding them, for example:
-
-```
-// merge
-Merged content
-// /merge
-```
-
-Or
-
-```
-# merge
-Merged content
-# /merge
-```
-
-By default files that already exist in the destination directory are not overwritten, and merging allows you to add missing parts to a Rakefile or Makefile, for example.
-
-If `ask` is specified, a menu will be provided on the command line asking how to handle a file. If the file doesn't already exist, you will be asked only whether to copy the file or not. If it does exist, `overwrite` and `merge` options will be added.
-
-### Regex replacements
-
-In addition to manually-placed template variables, you can also specify regular expressions for replacement. The `replacements` dictionary is a set of key/value pairs with the regex pattern as the key, and the replacement as the value. Both should be quoted in almost all circumstances.
-
-```yaml
-replacements:
-  "Planter": "%%title:cap%%"
-  "(main|app)\.js": "%%script:lower%%.js"
-```
-
-Replacements are performed on both file/directory names and file contents. This is especially handy when the source of the plant is a Git repo, allowing the replacement of elements without having to create %%templated%% filenames and contents.
-
-### Finder Tags
-
-If `preserve_tags` is set to `true` in the config (either base or template), then existing Finder tags on the file or folder will be copied to the new file when a template is planted.
+Content within if/else blocks can contain variables. Planter's if/then parsing does not handle parenthetical or boolean operations.
 
 ## Usage
 

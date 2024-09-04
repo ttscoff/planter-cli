@@ -141,6 +141,32 @@ describe ::String do
     end
   end
 
+  describe '.apply_operator_logic' do
+    it 'applies logic' do
+      template = 'copy if language == ruby'
+      operators = { language: 'ruby' }
+      expect(template.apply_operator_logic(operators)).to eq :copy
+    end
+
+    it 'applies default' do
+      template = 'copy if language == perl'
+      operators = { language: 'ruby' }
+      expect(template.apply_operator_logic(operators)).to eq :ignore
+    end
+
+    it 'handles no logic' do
+      template = 'copy'
+      operators = {}
+      expect(template.apply_operator_logic(operators)).to eq :copy
+    end
+
+    it 'handles if then' do
+      template = 'if language == ruby: copy; else: ignore'
+      operators = { language: 'perl' }
+      expect(template.apply_operator_logic(operators)).to eq :ignore
+    end
+  end
+
   describe '.apply_regexes' do
     it 'applies a single regex replacement' do
       template = 'Hello, World!'

@@ -12,6 +12,7 @@ describe Planter::Script do
   let(:base_script_path) { File.join(Planter.base_dir, 'scripts', script_name) }
 
   before do
+    ENV['PLANTER_RSPEC'] = 'true'
     Planter.base_dir = File.expand_path('spec')
     allow(File).to receive(:exist?).and_call_original
     allow(File).to receive(:directory?).and_call_original

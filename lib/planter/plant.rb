@@ -52,7 +52,8 @@ module Planter
           value: var[:value],
           min: var[:min],
           max: var[:max],
-          choices: var[:choices] || nil
+          choices: var[:choices] || nil,
+          date_format: var[:date_format] || nil
         )
         answer = q.ask
         if answer.nil?
@@ -61,7 +62,7 @@ module Planter
           answer = var[:default]
         end
 
-        Planter.variables[key] = answer
+        Planter.variables[key] = answer.apply_all
       end
 
       git_pull if @repo
@@ -190,7 +191,7 @@ module Planter
 
         content = IO.read(file)
 
-        new_content = content.apply_logic.apply_variables.apply_regexes
+        new_content = content.apply_all
 
         new_content.gsub!(%r{^.{.4}/?merge *.{,4}\n}, '') if new_content =~ /^.{.4}merge *\n/
 
