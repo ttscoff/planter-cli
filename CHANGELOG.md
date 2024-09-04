@@ -1,3 +1,23 @@
+### 3.0.5
+
+2024-09-04 07:49
+
+#### NEW
+
+- Date_format setting for date types
+- Allow `today '%Y'` inline date formatting
+- If/then logic for file operators
+- First_letter, first_word modifiers for variables
+- Allow default/value variable configutations to include %%placeholders%% and modifiers
+
+#### IMPROVED
+
+- Code refactoring
+
+#### FIXED
+
+- Overwrite operation not overwriting
+
 ### 3.0.4
 
 2024-09-02 08:43
