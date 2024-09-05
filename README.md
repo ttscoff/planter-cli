@@ -302,7 +302,7 @@ Some directories like `.git` and files like `_planter.yml` are automatically ign
 
 When `plant` is run, any defined variables will be requested on the command line using the defined prompt. If a `default` key is specified, hitting return at the prompt will accept the default value.
 
-Variables can be passed on the command line with `--var KEY:VALUE`. This flag can contain a comma-separated list, e.g. `--var KEY:VALUE,KEY:VALUE` or used multiple times in the same command. Variables passed on the command line will not be prompted for when processing variables.
+Variables can be passed on the command line with `--var KEY:VALUE`. This flag can contain a comma-separated list, e.g. `--var KEY:VALUE,KEY:VALUE` or be used multiple times in the same command. Variables passed on the command line will not be prompted for when processing variables.
 
 
 

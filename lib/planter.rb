@@ -45,7 +45,6 @@ EXIT_CODES = {
 # Exit the program with a message
 #
 # @param msg [String] error message
-# @param level [Symbol] notification level
 # @param code [Integer] Exit code
 #
 def die(msg = 'Exited', code = :canceled)
@@ -90,6 +89,9 @@ module Planter
     ## Accept all defaults
     attr_accessor :accept_defaults
 
+    ## Reader for the configuration object
+    ##
+    ## @return [Planter::Config] Configuration object
     def config
       @config ||= Config.new
     end
@@ -127,9 +129,7 @@ module Planter
 
       above_spinner ? spinner.log(out.x) : warn(out.x)
 
-      if exit_code && $stdout.isatty && (ENV['PLANTER_RSPEC'] == 'true' || ENV['PLANTER_DEBUG'] != 'true')
-        exit(exit_code)
-      end
+      exit(exit_code) if exit_code && $stdout.isatty && (ENV['PLANTER_RSPEC'] == 'true' || ENV['PLANTER_DEBUG'] != 'true')
 
       true
     end

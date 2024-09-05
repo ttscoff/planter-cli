@@ -1,16 +1,15 @@
 # frozen_string_literal: true
 
 module Planter
+  ## Configuration class
   class Config < Hash
     attr_reader :template
 
     ##
     ## Initialize a new Config object for a template
     ##
-    ## @param template [String] template name
-    ##
     def initialize
-      # super()
+      super()
 
       @config = initial_config
       @template = Planter.template
@@ -22,26 +21,17 @@ module Planter
       generate_accessors
     end
 
-    def initial_config
-      {
-        defaults: false,
-        git_init: false,
-        files: { '_planter.yml' => 'ignore' },
-        color: true,
-        preserve_tags: nil,
-        variables: nil,
-        replacements: nil,
-        repo: false,
-        patterns: nil,
-        debug: false,
-        script: nil
-      }
-    end
-
+    ## String representation of the configuration
     def to_s
       @config.to_s
     end
 
+    ## Get a config key
+    ##
+    ## @param key [String,Symbol] key
+    ##
+    ## @return [String] value
+    ##
     def [](key)
       @config[key]
     end
@@ -59,7 +49,32 @@ module Planter
 
     private
 
+    ## Default configuration
+    ##
+    ## @return [Hash] default configuration
+    ##
+    ## @api private
+    ##
+    def initial_config
+      {
+        defaults: false,
+        git_init: false,
+        files: { '_planter.yml' => 'ignore' },
+        color: true,
+        preserve_tags: nil,
+        variables: nil,
+        replacements: nil,
+        repo: false,
+        patterns: nil,
+        debug: false,
+        script: nil
+      }
+    end
+
     ##  Generate accessors for configuration
+    ##
+    ## @api private
+    ##
     def generate_accessors
       @config.each do |k, v|
         define_singleton_method(k) { v } unless respond_to?(k)
@@ -68,8 +83,6 @@ module Planter
 
     ##
     ## Build a configuration from template name
-    ##
-    ## @param      template  [String] The template name
     ##
     ## @return     [Hash] Configuration object
     ##

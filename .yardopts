@@ -1,7 +1,7 @@
 --markup=markdown
---private
---protected
+--no-private
 --list-undoc
+--exclude lib/tty-spinner/
 lib/**/*.rb
 -
 README.md

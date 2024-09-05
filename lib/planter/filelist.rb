@@ -50,6 +50,10 @@ module Planter
     ##
     ## @param      entry  [FileEntry] The file entry
     ##
+    ## @return     [Boolean] success
+    ##
+    ## @api private
+    ##
     def handle_operator(entry)
       case entry.operation
       when :ignore
@@ -72,6 +76,8 @@ module Planter
     #
     # @return [Boolean] success
     #
+    # @api private
+    #
     def apply_tags(entry)
       return unless Planter.config.preserve_tags
 
@@ -82,6 +88,8 @@ module Planter
     ## Copy template files to new directory
     ##
     ## @return     [Boolean] success
+    ##
+    ## @api private
     ##
     def prepare_copy
       @files.each do |entry|
@@ -97,6 +105,10 @@ module Planter
     ##
     ## @param      entry  [FileEntry] The file entry
     ##
+    ## @return     [Boolean] success
+    ##
+    ## @api private
+    ##
     def propogate_operation(entry)
       @files.each do |file|
         file.operation = entry.operation if file.file =~ /^#{entry.file}/
@@ -110,6 +122,8 @@ module Planter
     ## @param      entry  [FileEntry] The file entry
     ##
     ## @return     [Boolean] success
+    ##
+    ## @api private
     ##
     def merge(entry)
       return copy_file(entry) if File.directory?(entry.file)
@@ -163,6 +177,8 @@ module Planter
     ## @param      overwrite  [Boolean] Force overwrite
     ##
     ## @return     [Boolean] success
+    ##
+    ## @api private
     ##
     def copy_file(file, overwrite: false)
       # If the target file already exists and overwrite is true,

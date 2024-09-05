@@ -1,3 +1,5 @@
+inherit_from: .rubocop_todo.yml
+
 Style/RegexpLiteral:
   Exclude:
     - Guardfile
@@ -16,6 +18,7 @@ AllCops:
   Exclude:
     - pkg/**/*.rb
     - test/*
+    - 'lib/tty-spinner/**/*'
 
 Style/MutableConstant:
   Enabled: false
@@ -31,9 +34,6 @@ Style/StringLiteralsInInterpolation:
   Enabled: true
   EnforcedStyle: single_quotes
 
-Layout/LineLength:
-  Max: 120
-
 Metrics/MethodLength:
   Max: 45
 
@@ -42,6 +42,7 @@ Metrics/BlockLength:
   Exclude:
     - Rakefile
     - lib/*.rb
+    - lib/planter/string.rb
 
 Metrics/ClassLength:
   Max: 300

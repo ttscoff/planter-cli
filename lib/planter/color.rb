@@ -128,9 +128,7 @@ module Planter
         compiled = ''
         normalize_color.chars.each do |char|
           compiled += char
-          if Color.attributes.include?(compiled.to_sym) || compiled =~ /^([fb]g?)?#([a-f0-9]{6})$/i
-            valid_color = compiled
-          end
+          valid_color = compiled if Color.attributes.include?(compiled.to_sym) || compiled =~ /^([fb]g?)?#([a-f0-9]{6})$/i
         end
 
         valid_color

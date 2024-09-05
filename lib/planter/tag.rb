@@ -28,8 +28,11 @@ module Planter
 
       # Add tags to a directory.
       #
-      # @param dir [String] The directory to tag.
+      # @param target [String] The directory to tag.
       # @param tags [Array<String>] The tags to add.
+      #
+      # @return [Boolean] Success.
+      #
       def add(target, tags)
         return false unless TTY::Which.exist?('xattr')
 
@@ -105,6 +108,7 @@ module Planter
       # @return [Boolean] success
       #
       # @api private
+      #
       def set_tags(target, tags)
         return false unless TTY::Which.exist?('xattr')
 

@@ -239,7 +239,7 @@ module Planter
       variables = variables.nil? ? Planter.variables : variables
       op_rx = ' *(?<content>c(?:opy)?|o(?:ver(?:write)?)?|i(?:gnore)?|m(?:erge)?)? *'
 
-      strip.gsub(/^if .*?(?:end(?: ?if)?|$)/mi) do |construct|
+      output = strip.gsub(/^if .*?(?:end(?: ?if)?|$)/mi) do |construct|
         # Get the condition and the content
         output = construct.match(/else:#{op_rx}/m) ? Regexp.last_match(1) : ''
 
@@ -249,13 +249,16 @@ module Planter
         end
 
         apply_conditions(conditions, variables, output)
-      end.gsub(/^#{op_rx} +if .*?(end( ?if)?|$)/mi) do |construct|
+      end
+      output = output.gsub(/^#{op_rx} +if .*?(end( ?if)?|$)/mi) do |construct|
         # Get the condition and the content
         output = construct.match(/else[; ]+(#{op_rx})/m) ? Regexp.last_match(1) : :ignore
         condition = construct.match(/^#{op_rx}(?<statement>if) +(?<condition>.*?)(?=;|$)/mi)
 
         apply_conditions([condition], variables, output)
-      end.normalize_operator
+      end
+
+      output.normalize_operator
     end
 
     ##
@@ -695,7 +698,7 @@ module Planter
     #
     # @return [Boolean] has selector
     #
-    def has_selector?
+    def selector?
       self =~ /\(.\)/ ? true : false
     end
   end

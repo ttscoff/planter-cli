@@ -73,6 +73,8 @@ module Planter
       ##
       ## @return     [Number] numeric response
       ##
+      ## @api private
+      ##
       def read_number(integer: false)
         default = @default ? " {xw}[{xbw}#{@default}{xw}]" : ''
         Planter.notify("{by}#{@prompt} {xc}({bw}#{@min}{xc}-{bw}#{@max}{xc})#{default}")
@@ -91,6 +93,8 @@ module Planter
       ## Parse a date value into a date string
       ##
       ## @return     [String] date string
+      ##
+      ## @api private
       ##
       def date_default
         default = @value || @default
@@ -120,6 +124,8 @@ module Planter
       ##
       ## @return     [Date] Parsed Date object
       ##
+      ## @api private
+      ##
       def read_date(prompt: nil)
         prompt ||= @prompt
         default = date_default
@@ -140,6 +146,8 @@ module Planter
       ##                     until a blank entry is given
       ##
       ## @return     [String] the single-line response
+      ##
+      ## @api private
       ##
       def read_line(prompt: nil)
         return @default if Planter.accept_defaults || ENV['PLANTER_DEBUG']
@@ -164,6 +172,8 @@ module Planter
       ##
       ## @return     [String] the multi-line response
       ##
+      ## @api private
+      ##
       def read_lines(prompt: nil)
         prompt ||= @prompt
         save = @gum ? 'Ctrl-J for newline, Enter' : 'Ctrl-D'
@@ -180,6 +190,8 @@ module Planter
       ##
       ## @return     [String] String response
       ##
+      ## @api private
+      ##
       def read_number_gum
         trap('SIGINT') { exit! }
         res = `gum input --placeholder "#{@min}-#{@max}"`.strip
@@ -192,6 +204,8 @@ module Planter
       ## Read a single line entry using TTY::Reader
       ##
       ## @return     [String] String response
+      ##
+      ## @api private
       ##
       def read_line_tty
         trap('SIGINT') { exit! }
@@ -207,6 +221,8 @@ module Planter
       ##
       ## @return     [String] String response
       ##
+      ## @api private
+      ##
       def read_line_gum
         trap('SIGINT') { exit! }
         res = `gum input --placeholder "(blank to use default)"`.strip
@@ -220,6 +236,8 @@ module Planter
       ##
       ## @return     [string] multiline input
       ##
+      ## @api private
+      ##
       def read_mutliline_tty
         trap('SIGINT') { exit! }
         reader = TTY::Reader.new
@@ -231,6 +249,8 @@ module Planter
       ## Read a multiline entry using gum
       ##
       ## @return     [string] multiline input
+      ##
+      ## @api private
       ##
       def read_multiline_gum(prompt)
         trap('SIGINT') { exit! }
@@ -268,7 +288,7 @@ module Planter
         values = choices.to_values.map(&:clean_value)
       end
 
-      die('Choice(s) without selector, please edit config') unless keys.all?(&:has_selector?)
+      die('Choice(s) without selector, please edit config') unless keys.all?(&:selector?)
 
       default = case default_response.to_s
                 when /^\d+$/
