@@ -1,3 +1,11 @@
+### 3.0.6
+
+2024-09-05 05:53
+
+#### IMPROVED
+
+- Code cleanup and documentation
+
 ### 3.0.5
 
 2024-09-04 07:49
