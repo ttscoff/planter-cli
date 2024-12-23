@@ -114,7 +114,6 @@ module Planter
                 '{dw}'
               when :error
                 '{br}'
-
               when :warn
                 '{by}'
               else
@@ -143,8 +142,8 @@ module Planter
       @spinner ||= TTY::Spinner.new('{bw}[{by}:spinner{bw}] {w}:title'.x,
                                     hide_cursor: true,
                                     format: :dots,
-                                    success_mark: '{bg}â{x}'.x,
-                                    error_mark: '{br}â{x}'.x)
+                                    success_mark: '{bg}✔{x}'.x,
+                                    error_mark: '{br}✖{x}'.x)
     end
 
     def base_dir
