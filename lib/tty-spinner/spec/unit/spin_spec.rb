@@ -24,11 +24,11 @@ RSpec.describe TTY::Spinner, "#spin" do
     5.times { spinner.spin }
     output.rewind
     expect(output.read).to eq([
-      "\e[1Gâ´",
-      "\e[1Gâ·",
-      "\e[1Gâ¶",
-      "\e[1Gâµ",
-      "\e[1Gâ´"
+      "\e[1G◴",
+      "\e[1G◷",
+      "\e[1G◶",
+      "\e[1G◵",
+      "\e[1G◴"
     ].join)
   end
 

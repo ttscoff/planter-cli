@@ -104,7 +104,7 @@ spinner.stop("Done!") # Stop animation
 This would produce animation in your terminal:
 
 ```
-âº Loading ...
+⎺ Loading ...
 ```
 
 And when finished output:
@@ -135,9 +135,9 @@ sp2.success
 The spinners when done will display:
 
 ```
-â [â] top
-âââ [â] one
-âââ [â] two
+┌ [✔] top
+├── [✔] one
+└── [✔] two
 ```
 
 For more usage examples please see [examples directory](https://github.com/piotrmurach/tty-spinner/tree/master/examples)
@@ -234,7 +234,7 @@ spinner.success("(successful)")
 This will produce:
 
 ```
-[â] Task name (successful)
+[✔] Task name (successful)
 ```
 
 #### 2.5.2 error
@@ -249,7 +249,7 @@ spinner.error("(error)")
 This will produce:
 
 ```
-[â] Task name (error)
+[✖] Task name (error)
 ```
 
 ### 2.6 update
@@ -494,9 +494,9 @@ spinner_2.error
 The result may look like this:
 
 ```ruby
-â [â] top
-âââ [â] one
-âââ [â] two
+┌ [✖] top
+├── [✔] one
+└── [✖] two
 ```
 
 #### 5.2.2 auto async tasks
