@@ -36,7 +36,7 @@ module Planter
     def glob_to_rx
       gsub(/\\?\{(.*?)\\?\}/) do
         m = Regexp.last_match
-        "(?:#{m[1].split(/,/).map { |c| Regexp.escape(c) }.join('|')})"
+        "(?:#{m[1].split(/,/).map { |c| Regexp.escape(c) }.join("|")})"
       end
     end
 
@@ -47,7 +47,7 @@ module Planter
     # @return [String] String with wildcards converted (not Regexp)
     #
     def to_rx
-      gsub(/([.()])/, '\\\\\1').gsub(/\?/, '.').gsub(/\*/, '.*?').glob_to_rx
+      gsub(/([.()])/, '\\\\\1').gsub(/\?/, ".").gsub(/\*/, ".*?").glob_to_rx
     end
 
     ##
@@ -58,7 +58,7 @@ module Planter
     ## @return     Class name representation of the object.
     ##
     def to_class_name
-      strip.no_ext.title_case.gsub(/[^a-z0-9]/i, '').sub(/^\S/, &:upcase)
+      strip.no_ext.title_case.gsub(/[^a-z0-9]/i, "").sub(/^\S/, &:upcase)
     end
 
     ##
@@ -69,10 +69,10 @@ module Planter
     ## @return     Filename representation of the object.
     ##
     def to_slug
-      strip.split(/(?=[A-Z ])/).map(&:downcase).join('-')
+      strip.split(/(?=[A-Z ])/).map(&:downcase).join("-")
            .gsub(/[^a-z0-9_-]/i, &:slugify)
-           .gsub(/-+/, '-')
-           .gsub(/(^-|-$)/, '')
+           .gsub(/-+/, "-")
+           .gsub(/(^-|-$)/, "")
     end
 
     ## Convert some characters to text
@@ -82,14 +82,14 @@ module Planter
     def slugify
       char = to_s
       slug_version = {
-        '.' => 'dot',
-        '/' => 'slash',
-        ':' => 'colon',
-        ',' => 'comma',
-        '!' => 'bang',
-        '#' => 'hash'
+        "." => "dot",
+        "/" => "slash",
+        ":" => "colon",
+        "," => "comma",
+        "!" => "bang",
+        "#" => "hash",
       }
-      slug_version[char] ? "-#{slug_version[char]}-" : ''
+      slug_version[char] ? "-#{slug_version[char]}-" : ""
     end
 
     ##
@@ -102,10 +102,10 @@ module Planter
     ##
     def snake_case
       strip.gsub(/\S(?=[A-Z])/, '\0_')
-           .gsub(/[ -]+/, '_')
-           .gsub(/[^a-z0-9_]+/i, '')
-           .gsub(/_+/, '_')
-           .gsub(/(^_|_$)/, '').downcase
+           .gsub(/[ -]+/, "_")
+           .gsub(/[^a-z0-9_]+/i, "")
+           .gsub(/_+/, "_")
+           .gsub(/(^_|_$)/, "").downcase
     end
 
     ##
@@ -118,7 +118,7 @@ module Planter
     ##
     def camel_case
       strip.gsub(/(?<=[^a-z0-9])(\S)/) { Regexp.last_match(1).upcase }
-           .gsub(/[^a-z0-9]+/i, '')
+           .gsub(/[^a-z0-9]+/i, "")
            .sub(/^(\w)/) { Regexp.last_match(1).downcase }
     end
 
@@ -131,11 +131,11 @@ module Planter
     ## @return     [String] title cased string
     ##
     def title_case
-      split(/\b(\w+)/).map(&:capitalize).join('')
+      split(/\b(\w+)/).map(&:capitalize).join("")
     end
 
     # @return [String] Regular expression for matching variable modifiers
-    MOD_RX = '(?<mod>
+    MOD_RX = "(?<mod>
                   (?::
                     (
                       l(?:ow(?:er(case)?)?)?)?|
@@ -149,9 +149,9 @@ module Planter
                       f(?:ile(?:name)?
                     )?
                   )*
-                )'
+                )"
     # @return [String] regular expression string for default values
-    DEFAULT_RX = '(?:%(?<default>[^%]+))?'
+    DEFAULT_RX = "(?:%(?<default>[^%]+))?"
 
     #
     # Apply default values to a string
@@ -170,18 +170,18 @@ module Planter
         m = Regexp.last_match
 
         # Check if the variable is not present in the variables hash
-        if !variables.key?(m['varname'].to_var)
+        if !variables.key?(m["varname"].to_var)
           # If the variable is not present, use the default value from the match
-          m['default'].apply_var_names
+          m["default"].apply_var_names
         else
           # Retrieve the default value for the variable from the configuration
-          vars = Planter.config.variables.filter { |v| v[:key] == m['varname'] }
+          vars = Planter.config.variables.filter { |v| v[:key] == m["varname"] }
           default = vars.first[:default] if vars.count.positive?
           if default.nil?
             m[0]
-          elsif variables[m['varname'].to_var] == default
+          elsif variables[m["varname"].to_var] == default
             # If the variable's value matches the default value, use the default value from the match
-            m['default'].apply_var_names
+            m["default"].apply_var_names
           else
             m[0]
           end
@@ -209,7 +209,7 @@ module Planter
 
       gsub(/%%if .*?%%.*?%%end( ?if)?%%/mi) do |construct|
         # Get the condition and the content
-        output = construct.match(/%%else%%(.*?)%%end/m) ? Regexp.last_match(1) : ''
+        output = construct.match(/%%else%%(.*?)%%end/m) ? Regexp.last_match(1) : ""
 
         conditions = construct.to_enum(:scan,
                                        /%%(?<statement>(?:els(?:e )?)?if) (?<condition>.*?)%%(?<content>.*?)(?=%%)/mi).map do
@@ -311,30 +311,30 @@ module Planter
                 comp =~ /^#{value}$/i
               when :matches_regex
                 comp =~ Regexp.new(value.gsub(%r{^/|/$}, ''))
-              when :contains
-                comp =~ /#{value}/i
-              when :starts_with
-                comp =~ /^#{value}/i
-              when :ends_with
-                comp =~ /#{value}$/i
-              when :greater_than
-                comp > value.to_f
-              when :less_than
-                comp < value.to_f
-              when :greater_than_or_equal
-                comp >= value.to_f
-              when :less_than_or_equal
-                comp <= value.to_f
-              else
-                false
-              end
+          when :contains
+            comp =~ /#{value}/i
+          when :starts_with
+            comp =~ /^#{value}/i
+          when :ends_with
+            comp =~ /#{value}$/i
+          when :greater_than
+            comp > value.to_f
+          when :less_than
+            comp < value.to_f
+          when :greater_than_or_equal
+            comp >= value.to_f
+          when :less_than_or_equal
+            comp <= value.to_f
+          else
+            false
+          end
         res = res ? true : false
         res = !res if negate
 
         next unless res
 
-        Planter.notify("Condition matched: #{comp} #{negate ? 'not ' : ''}#{operator} #{value}", :debug)
-        output = condition['content']
+        Planter.notify("Condition matched: #{comp} #{negate ? "not " : ""}#{operator} #{value}", :debug)
+        output = condition["content"]
         break
       end
       output
@@ -362,8 +362,8 @@ module Planter
           pattern = "%%#{k.to_var}"
           content = content.reverse.sub(/(?mix)%%(?:(?<mod>.*?):)*(?<key>#{pattern.reverse})/i) do
             m = Regexp.last_match
-            if m['mod']
-              m['mod'].reverse.split(/:/).each do |mod|
+            if m["mod"]
+              m["mod"].reverse.split(/:/).each do |mod|
                 v = v.apply_mod(mod.normalize_mod)
               end
             end
@@ -376,8 +376,8 @@ module Planter
           content.gsub!(rx) do
             m = Regexp.last_match
 
-            if m['mod']
-              mods = m['mod']&.split(/:/)
+            if m["mod"]
+              mods = m["mod"]&.split(/:/)
               mods&.each do |mod|
                 next if mod.nil? || mod.empty?
 
@@ -400,8 +400,8 @@ module Planter
     def apply_var_names
       sub(/\$\{?(?<varname>\w+)(?<mods>(?::\w+)+)?\}?/) do
         m = Regexp.last_match
-        if Planter.variables.key?(m['varname'].to_var)
-          Planter.variables[m['varname'].to_var].apply_mods(m['mods'])
+        if Planter.variables.key?(m["varname"].to_var)
+          Planter.variables[m["varname"].to_var].apply_mods(m["mods"])
         else
           m
         end
@@ -477,7 +477,7 @@ module Planter
     ## @return     [String] string with no extension
     ##
     def no_ext
-      sub(/\.\w{2,4}$/, '')
+      sub(/\.\w{2,4}$/, "")
     end
 
     ##
@@ -492,7 +492,7 @@ module Planter
     ## @return     [String] string with new extension
     ##
     def ext(extension)
-      extension = extension.sub(/^\./, '')
+      extension = extension.sub(/^\./, "")
       sub(/(\.\w+)?$/, ".#{extension}")
     end
 
@@ -518,7 +518,7 @@ module Planter
       when :camel_case
         camel_case
       when :first_letter
-        split('')[0]
+        split("")[0]
       when :first_word
         split(/[ !,?;:]+/)[0]
       else
@@ -581,10 +581,10 @@ module Planter
         :ignore
       when /^(m|ap)/
         :merge
-      # ask or optional
+        # ask or optional
       when /^(a|op)/
         :ask
-      # overwrite
+        # overwrite
       when /^o/
         :overwrite
       else
@@ -606,25 +606,25 @@ module Planter
       # date
       when /^da/
         :date
-      # integer
+        # integer
       when /^i/
         :integer
-      # number or float
+        # number or float
       when /^[nf]/
         :float
-      # paragraph
+        # paragraph
       when /^p/
         :multiline
-      # class
+        # class
       when /^cl/
         :class
-      # module
+        # module
       when /^mod/
         :module
-      # multiple choice
+        # multiple choice
       when /^(ch|mu)/
         :choice
-      # string
+        # string
       else
         :string
       end
@@ -641,7 +641,7 @@ module Planter
 
       case type
       when :date
-        Chronic.parse(self).strftime('%Y-%m-%d %H:%M')
+        Chronic.parse(self).strftime("%Y-%m-%d %H:%M")
       when :integer || :number
         to_i
       when :float
@@ -659,7 +659,7 @@ module Planter
     ## @return     [String] UTF-8 string
     ##
     def clean_encode
-      force_encoding('ISO-8859-1').encode('utf-8', replace: nil)
+      force_encoding("ISO-8859-1").encode("utf-8", replace: nil)
     end
 
     ##
@@ -676,7 +676,7 @@ module Planter
     ## @return [String] cleaned string
     ##
     def clean_value
-      sub(/^\(?\d+\.\)? +/, '').sub(/\((.*?)\)/, '\1')
+      sub(/^\(?\d+\.\)? +/, "").sub(/\((.*?)\)/, '\1')
     end
 
     ##
