@@ -116,13 +116,13 @@ describe ::String do
 
   describe '.apply_logic' do
     it 'applies a single logic replacement' do
-      template = 'Hello %%if language == ruby%%World%%else%%There%%end%%!'
+      template = 'Hello There!'
       logic = { language: 'ruby' }
       expect(template.apply_logic(logic)).to eq 'Hello World!'
     end
 
     it 'handles quotes in logic' do
-      template = 'Hello %%if language == "ruby"%%World%%else%%There%%end%%!'
+      template = 'Hello There!'
       logic = { language: 'ruby' }
       expect(template.apply_logic(logic)).to eq 'Hello World!'
     end
@@ -134,7 +134,7 @@ describe ::String do
     end
 
     it 'Operates in place' do
-      template = 'Hello %%if language == "ruby"%%World%%else%%There%%end%%!'
+      template = 'Hello There!'
       logic = { language: 'ruby' }
       template.apply_logic!(logic)
       expect(template).to eq 'Hello World!'

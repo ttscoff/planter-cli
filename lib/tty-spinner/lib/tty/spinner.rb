@@ -20,8 +20,8 @@ module TTY
     ECMA_CSI = "\x1b["
 
     MATCHER = /:spinner/
-    TICK = "✔"
-    CROSS = "✖"
+    TICK = "â"
+    CROSS = "â"
 
     CURSOR_LOCK = Monitor.new
 

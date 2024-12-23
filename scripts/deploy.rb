@@ -10,7 +10,7 @@ end
 
 pastel = Pastel.new
 format = "[#{pastel.yellow(':spinner')}] " + pastel.white("Release Gem")
-spinners = TTY::Spinner::Multi.new(format, format: :dots, success_mark: pastel.green('✔'), error_mark: pastel.red('✖'))
+spinners = TTY::Spinner::Multi.new(format, format: :dots, success_mark: pastel.green('â'), error_mark: pastel.red('â'))
 sp_v = spinners.register "[#{pastel.cyan(':spinner')}] :msg"
 sp_d = spinners.register "[#{pastel.cyan(':spinner')}] Generate docs"
 spinners.auto_spin

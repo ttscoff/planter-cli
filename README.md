@@ -220,11 +220,7 @@ If `preserve_tags` is set to `true` in the config (either base or template), the
 
 ### Placeholders
 
-Placeholders are `%%VARIABLE%%` strings used in filenames and within the content of the files. At their most basic, this would just look like `%%project_name%%`. But you can supply default values, string modifiers, and even if/then logic.
-
-#### Default values in template strings
-
-In a template you can add a default value for a placholder by adding `%default value` to it. For example, `%%project%Default Project%%` will set the placeholder to `Default Project` if the variable value matches the default value in the configuration (or doesn't exist). This allows you to accept the default on the command line but have a different value inserted in the template. To use another variable in its place, use `$KEY` in the placeholder, e.g. `%%project%$title%%` will replace the `project` key with the value of `title` if the default is selected. Modifiers can be used on either side of the `%`, e.g. `%%project%$title:snake%%`.
+Placeholders are `%%VARIABLE%%` strings used in filenames and within the content of the files. At their most basic, this would just look like `%%project_namedefault value` to it. For example, `project%Default Project%%` will set the placeholder to `Default Project` if the variable value matches the default value in the configuration (or doesn't exist). This allows you to accept the default on the command line but have a different value inserted in the template. To use another variable in its place, use `$KEY` in the placeholder, e.g. `beengone` will replace the `project` key with the value of `title` if the default is selected. Modifiers can be used on either side of the `%`, e.g. `beengone`.
 
 #### Modifiers
 
@@ -246,13 +242,9 @@ A template can use if/then logic, which is useful with multiple choice types. It
 The format for if/then logic is:
 
 ```
-%%if KEY OPERATOR VALUE%%
-content
-%%else if KEY OPERATOR VALUE2%%
-content 2
-%%else%%
+
 content 3
-%%endif%%
+
 ```
 
 There should be no spaces around the comparison, e.g. `%% if language == javascript %%` won't work. The block must start with an `if` statement and end with `%%endif%%` or `%%end%%`. The `%%else%%` statement is optional -- if it doesn't exist then the entire block will be removed if no conditions are met.
@@ -276,7 +268,7 @@ The value after the operator doesn't need to be quoted, anything after the opera
 Logic can be used on multiple lines like the example above, or on a single line (useful for filenames):
 
 
-    %%project%%.%%if language == javascript%%js%%else if language == ruby%%rb%%else%%sh%%endif%%
+    beengone.sh
 
 
 Content within if/else blocks can contain variables. Planter's if/then parsing does not handle parenthetical or boolean operations.
