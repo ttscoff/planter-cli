@@ -19,6 +19,7 @@ AllCops:
     - pkg/**/*.rb
     - test/*
     - 'lib/tty-spinner/**/*'
+  NewCops: enable
 
 Style/MutableConstant:
   Enabled: false
